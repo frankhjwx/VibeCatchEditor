@@ -48,9 +48,9 @@ PNG 按原始逻辑宽高显示，@2x 的逻辑尺寸为像素尺寸的一半。
 
 时间—X 轨迹按每个锚点的 OutgoingKind（null 继承轨迹 Kind）求值，可混合线性与贝塞尔段。生成满足速度约束的首 span 路径，再按 SpanCount 产生 head / tick / repeat / legacy-last-tick / tail 和 tiny 事件。首 span 节点共用于后续往返；对象按路径弧长定位，叠加固定 Legacy RNG。分割插点保持该段形状，不自动成为 tick；SliderTickRate 与编辑分拍吸附独立。
 
-未编辑的导入 slider 按原 L/B/P/C 路径、声明长度和 repeat 生成，反向 span 保留对应 tick 位置并生成折返 fruit。选中后点击“编辑 Slider”，以一个事务转为首 span 的时间—X 线性节点，保留父 ID、源顺序、SpanCount 和原始 sample 信息；之后可编辑节点、切换“下一段”为贝塞尔。转换前后比较对象类型、时刻和 X 误差，失败不替换原对象。所有 slider 锁定起始红点和继承 SV，沿途 timing 变化不修改速度。
+Legacy Slider 按原 L/B/P/C 路径、声明长度和 repeat 生成，反向 span 保留对应 tick 位置并生成折返 fruit。选中后可从属性或右键执行“转换为 VCE Slider”，以一个事务转为首 span 的时间—X 线性节点，保留父 ID、源顺序、SpanCount 和原始 sample 信息。转换前后比较对象类型、时刻并验证全部 TinyDroplet 贴合，失败不替换 Legacy Slider。
 
-整图父对象的开始时间与原始顺序决定 RNG 消耗，即使时间重叠也先处理一个 stream 的全部 nested 对象，再处理下个父对象。Droplet 消耗旋转随机数，TinyDroplet 获得横向偏移；香蕉按实际 float 时间间隔生成，每根消耗位置与三次外观随机数。Tiny 贴合作用于启用补偿的创作轨迹；导入转编辑设置 CompensateTinyDroplets=false，保留原随机偏移，不因全局开关启用而补偿。无法达到目标时报告误差或明确回退。失败轨迹使结果不完整，不显示伪造 stream。完整边界见[转换说明](../src/VibeCatchEditor.Core/Conversion/UPSTREAM.md)。
+整图父对象的开始时间与原始顺序决定 RNG 消耗，即使时间重叠也先处理一个 stream 的全部 nested 对象，再处理下个父对象。普通 Droplet 的 X 位于路径上，只消耗旋转随机数；获得横向 RNG 偏移的是 TinyDroplet。Legacy Slider 保留该偏移，VCE Slider 通过反向调整导出路径来贴合目标时间—X 轨迹。新建或由 Legacy 转换的 VCE Slider 将贴合作为强约束，无法满足边界、共享 repeat 路径或 SV 条件时不生成该轨迹；自动 SV 上限为 1000。失败轨迹使结果不完整，不显示伪造 stream。
 
 Hyperdash 对时间稳定排序的 Fruit / Droplet 计算，TinyDroplet 和香蕉不参与。使用每个时间先截断到整数、`1000f / 60f / 4`的时间余量、完整 catcher 半宽及前一方向/剩余移动量；余量小于零时标记当前起跳对象。不能只按相邻 X 差或一个固定阈值判断，也不能省略视口前的上下文。来源：[CatchBeatmapProcessor.cs](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game.Rulesets.Catch/Beatmaps/CatchBeatmapProcessor.cs)及[CatchBeatmap.cs](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game.Rulesets.Catch/Beatmaps/CatchBeatmap.cs)。
 
@@ -58,8 +58,8 @@ Hyperdash 对时间稳定排序的 Fruit / Droplet 计算，TinyDroplet 和香�
 
 ## 图层与验证边界
 
-主画布曲线位于实际对象之上；选中 100% 不透明，未选中 50%，隐藏后对象仍保留。未编辑导入 slider 的覆盖线来自原始路径，转编辑后按本地混合段绘制；不使用随机 tiny 连线冒充轨迹。预览“调试曲线”默认关闭，开启后位于对象后方，与主画布开关独立。
+主画布曲线位于实际对象之上；选中 100% 不透明，未选中 50%，隐藏后对象仍保留。Legacy Slider 的覆盖线来自原始路径，VCE Slider 按本地混合段绘制；不使用随机 tiny 连线冒充轨迹。
 
-多 timing、repeat、混合段、导入转编辑、香蕉尺寸、PCM seek 和输出往返的当前验证见 [M2 编辑验收记录](M2_EDITING_ACCEPTANCE.md)。工程保存逐段类型与 SpanCount，输出 `.osu` 保留 repeat 与可保留的 sample 字段。
+多 timing、repeat、混合段、Legacy 转 VCE、香蕉尺寸、PCM seek 和输出往返的当前验证见 [M2 编辑验收记录](M2_EDITING_ACCEPTANCE.md)。工程保存逐段类型与 SpanCount，输出 `.osu` 保留 repeat 与可保留的 sample 字段。
 
 这些证据不等于 stable 精确一致。stable 客户端逐帧对照、mods 和音频延迟校准仍未完成；跨屏 DPI 交互与真实听感不能由离屏或纯算法测试代替。视频和 storyboard 不加载。

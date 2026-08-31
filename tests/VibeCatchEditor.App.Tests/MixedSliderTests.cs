@@ -42,20 +42,21 @@ internal static class MixedSliderTests
     public static void Import()
     {
         var ui = new Ui();
-        var map = OsuBeatmapReader.Read("osu file format v14\n[General]\nMode: 2\n[Difficulty]\nSliderMultiplier: 1\nSliderTickRate: 1\n[TimingPoints]\n0,500,4,1,0,100,1,0\n[HitObjects]\n160,192,1000,2,0,B|220:250|300:192,2,200\n");
+        var map = OsuBeatmapReader.Read("osu file format v14\n[General]\nMode: 2\n[Difficulty]\nSliderMultiplier: 1\nSliderTickRate: 1\n[TimingPoints]\n0,500,4,1,0,100,1,0\n[HitObjects]\n160,192,1000,2,0,B|220:250|300:192,1,200\n");
         Guid id = map.ImportedSliders.Single().Id;
         ui.View.LoadDocument(map); ui.Paint();
-        ui.ClickText("Slider  1000");
-        ui.ClickText("编辑 Slider");
+        ui.ClickText("Legacy Slider  1000");
+        ui.ClickText("转换为 VCE Slider");
         var track = ui.View.Document.Tracks.Single();
-        Check(track.Id == id && track.SpanCount == 2 && ui.View.Document.ImportedSliders.Count == 0, "Conversion lost the original parent identity or repeats.");
+        Check(track.Id == id && track.SpanCount == 1 && track.CompensateTinyDroplets == true
+            && ui.View.Document.ImportedSliders.Count == 0, "Conversion lost the original parent identity or VCE alignment policy.");
         ui.ClickMap(track.Nodes[0].TimeMs, track.Nodes[0].X);
         ui.SetField("位置  X", "155");
         Check(Math.Abs(track.Nodes[0].X - 155) < 0.001, "An imported slider node remained read-only.");
         ui.ClickText("控制点：直线");
         Check(CurveMath.SegmentKind(track, 0) == CurveKind.Bezier, "Imported straight segment cannot become Bezier.");
         var output = OsuBeatmapWriter.Serialize(ui.View.Document);
-        Check(output.ReadBack.ImportedSliders.Single().SpanCount == 2 && output.ObjectSequenceMatches, "Edited repeat slider did not survive osu export.");
+        Check(output.ReadBack.ImportedSliders.Single().SpanCount == 1 && output.ObjectSequenceMatches, "Edited VCE Slider did not survive osu export.");
         Check(ui.View.Document.ContentEquals(ProjectSerializer.Read(ProjectSerializer.Serialize(ui.View.Document))), "Edited imported slider cannot be saved and reopened.");
         ui.Key('Z', ctrl: true); ui.Key('Z', ctrl: true); ui.Key('Z', ctrl: true);
         Check(ui.View.Document.ImportedSliders.Single().Id == id && ui.View.Document.Tracks.Count == 0, "Undo did not recover the imported source.");

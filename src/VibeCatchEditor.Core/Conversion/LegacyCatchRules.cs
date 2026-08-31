@@ -41,12 +41,15 @@ internal sealed record NestedCatchEvent(CatchObjectKind Kind, double TimeMs, dou
 
 internal static class LegacyCatchRules
 {
+    internal const double MinimumSliderVelocityMultiplier = 0.1;
+    internal const double MaximumSliderVelocityMultiplier = 1000;
     internal const double MaximumPathLength = 100_000;
     internal const int MaximumNestedObjects = 50_000;
 
     public static double Velocity(double beatLength, double sliderMultiplier, double sv)
     {
-        double inheritedBeatLengthMagnitude = Math.Clamp((float)(100 / sv), 10, 1000);
+        double inheritedBeatLengthMagnitude = Math.Clamp((float)(100 / sv),
+            (float)(100 / MaximumSliderVelocityMultiplier), (float)(100 / MinimumSliderVelocityMultiplier));
         return 100 * sliderMultiplier / (beatLength * (inheritedBeatLengthMagnitude / 100));
     }
 

@@ -25,7 +25,7 @@ public static class ImportedSliderEditing
             {
                 Id = slider.Id, SourceOrder = slider.SourceOrder, OriginalLine = slider.OriginalLine,
                 Name = L.Get("core.names.importedSlider", slider.PathType, slider.TimeMs), Kind = CurveKind.Linear,
-                SpanCount = slider.SpanCount, CompensateTinyDroplets = false
+                SpanCount = slider.SpanCount, CompensateTinyDroplets = true
             };
             track.Nodes.AddRange(samples.Select(p => new Anchor { TimeMs = p.TimeMs, X = p.X, OutgoingKind = CurveKind.Linear }));
 
@@ -37,22 +37,18 @@ public static class ImportedSliderEditing
             var before = CatchStreamConverter.Convert(document).Objects.Where(o => o.SourceId == sliderId).ToArray();
             var generated = CatchStreamConverter.Convert(candidate);
             var after = generated.Objects.Where(o => o.SourceId == sliderId).ToArray();
+            var generatedSlider = generated.Sliders.SingleOrDefault(item => item.SourceId == sliderId);
+            if (generatedSlider is null || !generatedSlider.TinyCompensationSucceeded)
+                throw new InvalidOperationException(L.Get("core.importEditing.alignmentFailed"));
             if (before.Length == 0 || before.Length != after.Length)
                 throw new InvalidOperationException(L.Get("core.importEditing.countChangedPrefix") + string.Join(L.Get("core.diagnostics.separator"), generated.Diagnostics.Take(2)));
             for (int i = 0; i < before.Length; i++)
                 if (before[i].Kind != after[i].Kind || before[i].EventIndex != after[i].EventIndex || Math.Abs(before[i].TimeMs - after[i].TimeMs) > 0.000001)
                     throw new InvalidOperationException(L.Get("core.importEditing.sequenceChanged"));
-            double error = before.Zip(after, (a, b) => Math.Abs(a.X - b.X)).Max();
-            string[] diagnostics =
-            [
-                L.Get("core.importEditing.converted", slider.PathType, track.Nodes.Count, track.SpanCount),
-                L.Get("core.importEditing.error", error)
-            ];
-
             // Publish only after validation and event comparison; the caller's history transaction owns undo.
             document.ImportedSliders.Remove(slider);
             document.Tracks.Add(track);
-            return new(track, diagnostics);
+            return new(track, []);
         }
         catch (CatchConversionException error)
         {

@@ -28,12 +28,12 @@ src/
     Skinning/      Catch PNG 映射、skin.ini、密度和裁剪
     Diagnostics/   日志、离屏 render-check、真实谱面 M2 检查
   VibeCatchEditor.Core/
-    Model/         创作对象、导入 slider / 香蕉、timing、原始文件上下文
+    Model/         VCE Slider、Legacy Slider / 香蕉、timing、原始文件上下文
     Formats/       自有 stable v14 reader/writer、工程 JSON、原子写入
     Editing/       文档事务、撤销、时间—X 变换
     Timing/        多 timing 查询、局部节拍吸附与网格、Catch AR 下落比例
     Curves/        时间单调的混合线性/贝塞尔段、求值、保形分割和约束
-    Conversion/    导入 slider 转编辑、创作与导入 repeat、香蕉、RNG、Tiny 补偿与诊断
+    Conversion/    Legacy 转 VCE、两类 repeat、香蕉、RNG、Tiny 补偿与诊断
     Gameplay/      CS 尺寸与完整对象序列的 hyperdash 判定
     Localization/  英文主表、语言表发现、格式化与键校验
 tests/
@@ -62,11 +62,11 @@ V/F 使用完整父对象选择集合，B 使用当前编辑轨迹的锚点集�
 
 框选记录开始时的选择，取消时恢复；播放时暂缓视口跟随以保持框与对象坐标一致，结束后恢复跟随，音频时钟继续推进。锚点删除允许批量与端点，Core 验证合并后的段与柄，App 在不足两个剩余点时删除父 slider。内部剪贴板深复制一批完整父对象，粘贴将最早起点移到播放头并保留其余相对时间，重建全部父对象/节点 ID；剪切、删除、粘贴各自为一个事务，失败整批回滚，不使用系统剪贴板。
 
-选择工具以皮肤底图和 overlay 的实际目标范围命中，保留最小点击容差；没有纹理时用几何尺寸。命中 slider 的任意子对象后按 SourceId 选择整个父对象。属性“编辑 Slider”以单次事务调用导入转编辑：验证对象类型、顺序和时刻后替换为时间—X 轨迹，保留父 ID、源顺序、repeat 与原始样本信息，失败不替换。首 span 节点共享于所有行程，Tiny 补偿覆盖为 false。
+选择工具以皮肤底图和 overlay 的实际目标范围命中，保留最小点击容差；没有纹理时用几何尺寸。命中 slider 的任意子对象后按 SourceId 选择整个父对象。属性或右键“转换为 VCE Slider”以单次事务调用 Legacy 转换：验证对象类型、顺序、时刻和 TinyDroplet 贴合后替换为时间—X 轨迹，保留父 ID、源顺序、repeat 与原始样本信息，失败不替换。新建和转换后的 VCE Slider 使用强制 Tiny 贴合，自动 SV 上限为 1000。
 
 窗口消息、编辑、转换和绘制在同一线程，音频命令由独立串行 worker 处理。播放时 `WM_PAINT` 读取 transport 状态，绘制后再次请求重绘，`Present(1)` 随显示器垂直刷新节奏呈现；没有固定 60 FPS 限制，也未据此保证实测帧率。暂停时由状态变化请求重绘，最小化及零尺寸不呈现。
 
-转换缓存比较文档快照内容和 Tiny 补偿开关，变化后重新计算完整文档，包含导入 slider、repeat 和香蕉。切换语言也失效缓存，以重新生成当前语言的诊断。转换输入不受可见时间裁剪影响；不完整的曲线草稿暂不生成。两视图共用转换结果，再以完整对象序列计算 hyperdash。转换仍同步执行，没有异步 revision 调度；复杂谱面的耗时隔离需按测量结果处理。
+转换缓存比较文档快照内容和 Tiny 补偿开关，变化后重新计算完整文档，包含 Legacy Slider、VCE Slider、repeat 和香蕉。切换语言也失效缓存，以重新生成当前语言的诊断。转换输入不受可见时间裁剪影响；不完整的曲线草稿暂不生成。两视图共用转换结果，再以完整对象序列计算 hyperdash。转换仍同步执行，没有异步 revision 调度；复杂谱面的耗时隔离需按测量结果处理。
 
 派生路径保留独立几何 Y，按弧长取位置得到实际对象。失败轨迹不输出伪造对象，结果标为不完整；此时 RNG 仅对应成功生成的子集。算法、容量边界与精度见[模型规范](PROJECT_MODEL.md)和[Catch 绘制与转换](CATCH_RENDERING.md)。
 

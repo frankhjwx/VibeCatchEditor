@@ -36,9 +36,9 @@ directly to generated objects. Internal fruit/tick alignment must remain within
 
 Tiny compensation uses the actual seeded offset and the path-progress time of
 each event, including legacy timing discrepancies. The desired pre-offset X is
-limited to 0..512. A target outside that reachable range produces a diagnostic;
+limited to 0..512. A usable compatibility result keeps that limitation internal;
 excess required velocity falls back to uncompensated real tiny droplets with an
-explicit diagnostic. The result reports both whether compensation was applied
+internal result flag. The result reports both whether compensation was applied
 and whether every tiny target met the internal tolerance.
 
 Each authoring track stores one traversal and an explicit span count. Individual
@@ -50,18 +50,17 @@ shortening/extension, preserving the no-extension rule for equal final points.
 Repeat spans retain the original path while reversing progress; repeat fruit
 and legacy final-tick timing come from the event generator.
 
-Imported sliders retain their original representation until editing is requested.
+Legacy Sliders retain their original representation until conversion is requested.
 `ImportedSliderEditing` then projects their approximated path's cumulative distance
 to first-span time–X, with 0.001-unit simplification tolerance and field-boundary
 knots. It retains the parent ID, source order, original line and span count, so a
 turnaround remains one repeat event rather than adjacent tail/head objects. It
-compares generated event kinds, identities and times before replacing the source,
-and reports measured position changes; this is not lossless recovery of an author's
+compares generated event kinds, identities and times before replacing the source;
+this is not lossless recovery of an author's
 control handles. Zero-length path duplicates have no elapsed time and collapse in
-time–X; repeat events remain in the span count. Converted tracks default to real,
-uncompensated tiny offsets. A per-track option can override global compensation.
-Shared repeat progress with conflicting tiny targets produces a diagnostic and
-falls back to uncompensated tiny objects for the whole slider.
+time–X; repeat events remain in the span count. Converted VCE Sliders require tiny
+alignment. Shared repeat progress with conflicting tiny targets leaves the Legacy
+Slider unchanged.
 
 Timing queries preserve red-point BPM/offset/meter and green-point SV. Green
 points do not restart the beat grid; a slider locks its beat length and SV at
@@ -78,7 +77,7 @@ Mods and comparison with a running stable client remain outside this module's
 verification. Referenced algorithms and deterministic tests are not a claim of
 verified stable client equivalence.
 
-RNG input contains every represented fruit, authoring curve, imported slider and
+RNG input contains every represented fruit, VCE Slider, Legacy Slider and
 banana shower, ordered by source start time and retained source order. Each
 banana consumes its position draw and three additional legacy appearance draws.
 Objects created in the editor use their deterministic collection order when no

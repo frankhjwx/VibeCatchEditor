@@ -24,6 +24,7 @@ public sealed partial class EditorView
         { tool = Tool.Slider; SelectAnchors(editing, previousAnchors); }
         SliderLocation? location = null;
         bool found = false;
+        bool anchorHit = false;
         if (listBounds.Contains(x, y))
         {
             foreach (var row in rows)
@@ -37,7 +38,7 @@ public sealed partial class EditorView
                     .SelectMany(t => t.Nodes.Select(n => (Track: t, Node: n)))
                     .FirstOrDefault(p => Near(Point(p.Node), x, y, 7));
                 if (anchors && point.Node is not null && point.Track.Id == selectedTrack)
-                { PickAnchor(point.Track, point.Node, false); found = true; }
+                { PickAnchor(point.Track, point.Node, false); found = true; anchorHit = true; }
                 location = HitSliderLocation(x, y);
             }
             if (!anchors && !found && HitCatchObject(x, y) is { } hit)
@@ -46,7 +47,7 @@ public sealed partial class EditorView
             { PickObject(location.Id, false); found = true; }
         }
         if (!anchors && !found && objectSelection.Count <= 1) Select(Guid.Empty);
-        if (anchors && anchorSelection.Count > 0 && SelectedAnchor is { } node && SelectedTrack is { } track)
+        if (anchorHit && anchorSelection.Count > 0 && SelectedAnchor is { } node && SelectedTrack is { } track)
         {
             bool curved = CurvePointEditing.IsCurved(track, node.Id);
             if (anchorSelection.Count == 1)

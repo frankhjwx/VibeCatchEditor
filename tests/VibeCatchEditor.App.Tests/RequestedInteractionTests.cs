@@ -114,6 +114,14 @@ internal static class RequestedInteractionTests
             "The X=0 fruit is still clipped by the canvas edge.");
         Check(fruits.Any(circle => Math.Abs(circle.X - field.Right) < 0.001 && circle.X + circle.Radius <= canvas.Right + 0.001),
             "The X=512 fruit is still clipped by the canvas edge.");
+        var timingLines = ui.Canvas.Lines.Where(line => Math.Abs(line.Y1 - line.Y2) < 0.001
+            && Math.Abs(line.X1 - field.X) < 0.001 && Math.Abs(line.X2 - field.Right) < 0.001
+            && line.Color is 0x343C49 or 0x222933 or 0x845460).ToArray();
+        Check(timingLines.Length > 0, "The timing grid fixture did not draw horizontal lines.");
+        foreach (var timingLine in timingLines)
+            Check(!ui.Canvas.Lines.Any(line => Math.Abs(line.Y1 - timingLine.Y1) < 0.001 && Math.Abs(line.Y2 - timingLine.Y2) < 0.001
+                && line.Color == timingLine.Color && (line.X1 < field.X - 0.001 || line.X2 > field.Right + 0.001)),
+                "A timing grid line was drawn into the playfield padding.");
     }
 
     public static void BananaPlacement()

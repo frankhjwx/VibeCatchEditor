@@ -3,6 +3,19 @@ using VibeCatchEditor.Core;
 
 internal static class SliderTimingTests
 {
+    public static void HighSvRoundTrip()
+    {
+        var document = Map();
+        AddTrack(document, 2000, 2020, 0, 512);
+        var result = OsuBeatmapWriter.Serialize(document, false);
+        var raw = RawMap.Parse(result.Text);
+        double sv = raw.State(2000).Sv;
+        Check(sv is > 10 and <= 1000, "Output timing retained the old SV=10 ceiling.");
+        Check(Math.Abs(sv - TimingMap.At(result.ReadBack, 2000).SliderVelocityMultiplier) <= 0.000001,
+            "High SV changed during timing readback.");
+        Check(result.ObjectSequenceMatches, "High-SV output changed its generated object sequence after readback.");
+    }
+
     public static void RestorationStaysOutsideHeadWindow()
     {
         var document = Map();
@@ -297,7 +310,7 @@ internal static class SliderTimingTests
             {
                 if (Math.Floor(point.Time) > query) break;
                 if (point.Red) { beatLength = point.BeatLength; sv = 1; }
-                else sv = point.BeatLength < 0 ? Math.Clamp(-100 / point.BeatLength, 0.1, 10) : 1;
+                else sv = point.BeatLength < 0 ? Math.Clamp(-100 / point.BeatLength, 0.1, 1000) : 1;
             }
             return (beatLength, sv);
         }

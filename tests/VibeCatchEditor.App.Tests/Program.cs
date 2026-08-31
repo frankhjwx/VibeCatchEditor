@@ -7,9 +7,10 @@ var tests = new (string Name, Action Run)[]
     ("Fruit tools place quarters and sixths without moving existing objects", PlaceOnBothGrids),
     ("Beat snap slider exposes every requested divisor through one drag control", RequestedInteractionTests.SnapDivisors),
     ("Double-click enters one Slider and other clicks leave its edit mode", RequestedInteractionTests.DoubleClickEditing),
+    ("A Legacy Slider context action converts it to a strictly aligned VCE Slider", SliderInteractionTests.LegacyContextConversion),
     ("Selected parents snap from the earliest start and keep one time and X offset", RequestedInteractionTests.MultiObjectDrag),
     ("A single Slider uses its start as the snap reference while moving", RequestedInteractionTests.SingleSliderSnap),
-    ("The main canvas reserves a fixed CS0 fruit radius beyond both playfield edges", RequestedInteractionTests.PlayfieldPadding),
+    ("The main canvas reserves CS0 padding while timing grid lines stay inside X=0..512", RequestedInteractionTests.PlayfieldPadding),
     ("Banana placement uses left-start right-end and exposes precise times", RequestedInteractionTests.BananaPlacement),
     ("Selecting an exact numeric time does not resnap or create undo", SelectOffGrid),
     ("A multi-update fruit drag is one undo and redo transaction", DragUndoRedo),
@@ -42,21 +43,22 @@ var tests = new (string Name, Action Run)[]
     ("Playback line stays fixed across endpoints, zoom, resize and seek", ViewportFeedbackTests.Run),
     ("Selecting generated fruit, tick or tiny droplet selects the entire owning slider", SliderSelectionTests.Run),
     ("One authoring gesture mixes straight and Bezier segments with reversible edits", MixedSliderTests.Author),
-    ("Imported sliders become editable and preserve repeats through project and osu export", MixedSliderTests.Import),
+    ("Legacy Sliders convert to VCE Sliders and preserve repeats through project and osu export", MixedSliderTests.Import),
     ("Beatmap resource export excludes output subtrees and preserves selected audio", ResourceTests.Run),
     ("Fruit clipboard snapshots preserve metadata and undo identities", ClipboardTests.FruitSnapshotAndHistory),
     ("Anchor clipboard actions copy and cut the entire repeated slider", ClipboardTests.AnchorCopiesAndCutsParent),
-    ("Imported slider and banana clipboard preserve geometry and export samples", ClipboardTests.ImportedAndBananaMetadata),
+    ("Legacy Slider and banana clipboard preserve geometry and export samples", ClipboardTests.ImportedAndBananaMetadata),
     ("Clipboard rejects drafts and overflowing pastes without data loss", ClipboardTests.ClipboardBoundaries),
     ("Slider pen gestures combine corner points and curve handles", SliderInteractionTests.DrawGestures),
     ("Selected control points and handles highlight and drag", SliderInteractionTests.ControlSelectionAndDrag),
+    ("A selected VCE Slider enters anchor editing on one point click and scopes its context menu", SliderInteractionTests.SelectedAnchorEntryAndContext),
     ("Point context menu inserts converts and deletes with undo", SliderInteractionTests.PointContextMenu),
     ("Fruit context menu copies cuts pastes and deletes", SliderInteractionTests.FruitClipboardAndDelete),
     ("Slider context menu operates on the entire parent", SliderInteractionTests.SliderClipboardAndDelete),
     ("Hierarchy selection completes or cancels drafts and selects immediately", SliderInteractionTests.HierarchyCompletesDraft),
     ("Closing a context menu does not pass clicks to the canvas", SliderInteractionTests.ContextOutsideClick),
     ("Deleting a point never revives dormant neighbour handles", SliderInteractionTests.DeleteDoesNotActivateDormantHandles),
-    ("Inserting on an imported return span edits the shared first span", SliderInteractionTests.RepeatInsertion),
+    ("An incompatible Legacy repeat remains unchanged during point insertion", SliderInteractionTests.RepeatInsertion),
     ("Moving a draft tail keeps its visible future handle in bounds", SliderInteractionTests.DraftTailHandleBounds),
     ("Mixed clipboard batches preserve relative time and independent source order", ClipboardMultiTests.MixedBatchPreservesSnapshotAndOrder),
     ("Cutting a mixed batch is one reversible transaction", ClipboardMultiTests.MixedCutIsOneTransaction),
@@ -401,7 +403,7 @@ static void UpwardPainting()
     True(zero.Y >= plot.Bottom - 16 && zero.Y + 14 <= plot.Bottom,
         "The zero-time label must remain readable inside the bottom edge.");
     var canvasPlot = ui.View.CanvasPlotBounds;
-    True(ui.Canvas.Lines.Any(l => l.X1 == canvasPlot.X && l.X2 == canvasPlot.Right
+    True(ui.Canvas.Lines.Any(l => l.X1 == plot.X && l.X2 == plot.Right
         && l.Y1 == plot.Bottom && l.Y2 == plot.Bottom), "The zero-time grid line is not at the bottom.");
     var head = ui.Canvas.Lines.Single(l => l.Color == 0xF2C66D && l.X1 == canvasPlot.X
         && l.X2 == canvasPlot.Right && l.Y1 == l.Y2);

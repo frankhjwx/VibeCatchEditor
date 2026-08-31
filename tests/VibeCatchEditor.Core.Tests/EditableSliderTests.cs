@@ -79,7 +79,7 @@ internal static class EditableSliderTests
         var plain = CatchStreamConverter.Convert(doc, false);
         Valid(actual); Valid(plain);
         True(!actual.Sliders[0].TinyCompensationApplied, "Conflicting repeat offsets were reported as compensated.");
-        True(actual.Diagnostics.Any(d => d.Contains("补偿") && d.Contains("多个对象")), "Repeat path conflict was not diagnosed.");
+        True(actual.Diagnostics.Count == 0, "A compatible repeat fallback exposed an internal compensation warning.");
         True(actual.Objects.SequenceEqual(plain.Objects), "Repeat fallback fabricated tiny positions or changed the RNG sequence.");
         track.CompensateTinyDroplets = false;
         var preserved = CatchStreamConverter.Convert(doc, true);
@@ -92,7 +92,7 @@ internal static class EditableSliderTests
         foreach (char type in new[] { 'L', 'B', 'P', 'C' })
         {
             var doc = new MapDocument { SliderMultiplier = 5, SliderTickRate = 2 };
-            var slider = new ImportedSlider { TimeMs = 100, X = 100, Y = 100, PathType = type, SpanCount = 3,
+            var slider = new ImportedSlider { TimeMs = 100, X = 100, Y = 100, PathType = type, SpanCount = 1,
                 PixelLength = 300, SourceOrder = 2, OriginalLine = "retained source samples" };
             slider.ControlPoints.AddRange([new(100, 100), new(200, 180), new(300, 100)]);
             doc.ImportedSliders.Add(slider);
@@ -102,11 +102,16 @@ internal static class EditableSliderTests
             var converted = ImportedSliderEditing.ConvertToTrack(doc, slider.Id);
             True(doc.ImportedSliders.Count == 0 && doc.Tracks.Single() == converted.Track, "Editable replacement was not atomic.");
             True(converted.Track.Id == slider.Id && converted.Track.SourceOrder == slider.SourceOrder
-                && converted.Track.OriginalLine == slider.OriginalLine && converted.Track.SpanCount == 3, "Imported identity, source metadata or repeats were lost.");
+                && converted.Track.OriginalLine == slider.OriginalLine && converted.Track.SpanCount == 1, "Imported identity or source metadata was lost.");
             True(converted.Track.Nodes.All(n => n.OutgoingKind == CurveKind.Linear), "Imported path was not represented with explicit editable straight segments.");
-            True(converted.Diagnostics.Count > 0 && converted.Track.CompensateTinyDroplets == false, "Representation change or inherited tiny policy was hidden.");
+            True(converted.Diagnostics.Count == 0 && converted.Track.CompensateTinyDroplets == true,
+                "A successful Legacy conversion exposed internal metrics or lost the VCE alignment policy.");
             var after = CatchStreamConverter.Convert(doc);
-            Valid(after); Compare(before.Objects, after.Objects, 0.002);
+            Valid(after);
+            CompareSequence(before.Objects, after.Objects);
+            True(after.Objects.Where(item => item.SourceId == slider.Id)
+                .All(item => Math.Abs(item.X - CurveMath.PositionAtTime(converted.Track, item.TimeMs)) <= CatchStreamConverter.AlignmentTolerance),
+                "Converted VCE Slider left an object away from its target path.");
             var anchor = converted.Track.Nodes[1];
             True(CurveMath.TryMoveAnchor(converted.Track, anchor.Id, anchor.TimeMs, anchor.X - 5, out string error), error);
             Valid(CatchStreamConverter.Convert(doc));
@@ -116,7 +121,7 @@ internal static class EditableSliderTests
     public static void ConversionHistoryAndFailure()
     {
         var doc = new MapDocument();
-        var slider = new ImportedSlider { X = 100, Y = 100, PixelLength = 200, SpanCount = 2, PathType = 'L', SourceOrder = 3 };
+        var slider = new ImportedSlider { X = 100, Y = 100, PixelLength = 200, SpanCount = 1, PathType = 'L', SourceOrder = 3 };
         slider.ControlPoints.AddRange([new(100, 100), new(200, 200)]); doc.ImportedSliders.Add(slider);
         var history = new EditorHistory(doc);
         history.Begin("Edit imported slider");
@@ -131,8 +136,17 @@ internal static class EditableSliderTests
         True(!history.IsDirty && history.Document.Tracks.Count == 0 && history.Document.ImportedSliders[0].Id == slider.Id,
             "Undo failed to restore the original imported slider.");
         history.Redo();
-        True(history.Document.Tracks[0].SpanCount == 2 && history.Document.Tracks[0].Nodes[0].OutgoingKind == CurveKind.Bezier
-            && history.Document.Tracks[0].CompensateTinyDroplets == false, "Redo lost editable fields.");
+        True(history.Document.Tracks[0].SpanCount == 1 && history.Document.Tracks[0].Nodes[0].OutgoingKind == CurveKind.Bezier
+            && history.Document.Tracks[0].CompensateTinyDroplets == true, "Redo lost editable fields.");
+
+        var repeated = new MapDocument { SliderMultiplier = 5, SliderTickRate = 2 };
+        var conflicting = new ImportedSlider { TimeMs = 100, X = 100, Y = 100, PathType = 'L', SpanCount = 3, PixelLength = 300 };
+        conflicting.ControlPoints.AddRange([new(100, 100), new(300, 100)]);
+        repeated.ImportedSliders.Add(conflicting);
+        var repeatedBefore = repeated.DeepClone();
+        try { ImportedSliderEditing.ConvertToTrack(repeated, conflicting.Id); throw new Exception("Conflicting Legacy repeat unexpectedly became a VCE Slider."); }
+        catch (InvalidOperationException error) { True(error.Message.Contains("TinyDroplet"), "Strict alignment failure was not explained."); }
+        True(repeated.ContentEquals(repeatedBefore), "A failed strict conversion modified the Legacy Slider.");
 
         var invalid = new MapDocument();
         var zero = new ImportedSlider { X = 100, Y = 100, PathType = 'L' }; zero.ControlPoints.Add(new(100, 100)); invalid.ImportedSliders.Add(zero);
@@ -185,6 +199,18 @@ internal static class EditableSliderTests
             True(before[i].SourceId == after[i].SourceId && before[i].EventIndex == after[i].EventIndex && before[i].Kind == after[i].Kind,
                 "Imported edit changed source order, event identity or kind.");
             Near(before[i].TimeMs, after[i].TimeMs, 0.000001); Near(before[i].X, after[i].X, xTolerance);
+            Near(before[i].RandomOffset, after[i].RandomOffset);
+        }
+    }
+
+    private static void CompareSequence(IReadOnlyList<ConvertedCatchObject> before, IReadOnlyList<ConvertedCatchObject> after)
+    {
+        True(before.Count == after.Count, "VCE conversion changed the full-map object count.");
+        for (int i = 0; i < before.Count; i++)
+        {
+            True(before[i].SourceId == after[i].SourceId && before[i].EventIndex == after[i].EventIndex && before[i].Kind == after[i].Kind,
+                "VCE conversion changed source order, event identity or kind.");
+            Near(before[i].TimeMs, after[i].TimeMs, 0.000001);
             Near(before[i].RandomOffset, after[i].RandomOffset);
         }
     }

@@ -75,6 +75,32 @@ internal static class SliderInteractionTests
         Valid(ui);
     }
 
+    public static void SelectedAnchorEntryAndContext()
+    {
+        var ui = Load(CurveMap());
+        var track = ui.View.Document.Tracks.Single();
+        var node = track.Nodes[1];
+        ui.ClickText(track.Name);
+        Check(ui.View.ActiveTool == "Select" && ui.View.SelectedAnchorIds.Count == 0,
+            "Selecting the VCE Slider unexpectedly entered point editing.");
+
+        ui.ClickMap(node.TimeMs, node.X);
+        Check(ui.View.ActiveTool == "Slider" && ui.View.SelectedAnchorIds.SequenceEqual([node.Id]),
+            "A single click on a selected VCE Slider anchor did not enter anchor editing.");
+        var point = Screen(ui, node.TimeMs, node.X);
+        Check(ui.Canvas.Lines.Any(line => line.Color == 0xFF7F8D
+            && (Math.Abs(line.X1 - point.X) < 0.001 || Math.Abs(line.X2 - point.X) < 0.001)
+            && (Math.Abs(line.Y1 - point.Y) < 8.1 || Math.Abs(line.Y2 - point.Y) < 8.1)),
+            "The selected anchor does not use the distinct high-contrast colour.");
+
+        double farTime = 2000;
+        RightMap(ui, farTime, CurveMath.PositionAtTime(track, farTime));
+        Check(ui.Canvas.Texts.Any(text => text.Value == "插入控制点"),
+            "Right-clicking the selected curve away from its anchor lost the insertion action.");
+        Check(!ui.Canvas.Texts.Any(text => text.Value is "转换为曲线控制点" or "转换为直线控制点"),
+            "A distant curve click offered a point-type action for the previously selected anchor.");
+    }
+
     public static void PointContextMenu()
     {
         var ui = Load(CurveMap());
@@ -269,16 +295,31 @@ internal static class SliderInteractionTests
         Guid sourceId = map.ImportedSliders.Single().Id;
         // The return span goes X=300 to X=100 between 2000 and 3000 ms.
         RightMap(ui, 2500, 200); ui.ClickText("插入控制点");
+        Check(original.ContentEquals(ui.View.Document) && ui.View.Document.ImportedSliders.Single().Id == sourceId,
+            "A Legacy repeat that cannot guarantee TinyDroplet alignment was partially converted.");
+        Check(ui.View.StatusMessage.Contains("TinyDroplet"), "The rejected Legacy repeat conversion did not explain its VCE alignment constraint.");
+    }
+
+    public static void LegacyContextConversion()
+    {
+        var map = OsuBeatmapReader.Read("osu file format v14\n[General]\nMode: 2\n[Difficulty]\nSliderMultiplier: 1\nSliderTickRate: 1\n[TimingPoints]\n0,500,4,1,0,100,1,0\n[HitObjects]\n100,192,1000,2,0,L|300:192,1,200\n");
+        map.DurationMs = 12000;
+        var ui = Load(map);
+        Guid sourceId = map.ImportedSliders.Single().Id;
+        RightMap(ui, 1500, 200);
+        Check(ui.Canvas.Texts.Any(text => text.Value == "转换为 VCE Slider"), "Legacy Slider context menu has no explicit VCE conversion action.");
+        var action = ui.Canvas.Texts.Last(text => text.Value == "转换为 VCE Slider");
+        ui.Click(action.X + 4, action.Y + 5);
         var track = ui.View.Document.Tracks.Single();
-        Check(track.Id == sourceId && track.SpanCount == 2 && ui.View.Document.ImportedSliders.Count == 0,
-            "Inserting into an imported return span lost parent identity or repeat count.");
-        var inserted = track.Nodes.Single(n => n.TimeMs > 1000.001 && n.TimeMs < 1999.999);
-        Near(1500, inserted.TimeMs); Near(200, inserted.X);
-        Check(inserted.HandleIn == default && inserted.HandleOut == default,
-            "Inserting on the return span did not create a corner in the first-span source.");
-        Valid(ui);
+        Check(track.Id == sourceId && track.CompensateTinyDroplets == true && ui.View.Document.ImportedSliders.Count == 0,
+            "Context conversion did not replace the Legacy Slider with one VCE Slider.");
+        var objects = ui.View.Conversion.Objects.Where(item => item.SourceId == sourceId).ToArray();
+        Check(objects.Length > 0 && objects.All(item => Math.Abs(item.X - CurveMath.PositionAtTime(track, item.TimeMs))
+            <= CatchStreamConverter.AlignmentTolerance), "Converted VCE Slider objects are not aligned to its target path.");
+        Check(ui.Canvas.Texts.Any(text => text.Value == "VCE Slider"), "The converted object is not labelled as a VCE Slider.");
         ui.Key('Z', ctrl: true);
-        Check(original.ContentEquals(ui.View.Document), "Undo return-span insertion did not restore imported source text.");
+        Check(ui.View.Document.ImportedSliders.Single().Id == sourceId && ui.View.Document.Tracks.Count == 0,
+            "Undo did not restore the Legacy Slider representation.");
     }
 
     public static void DraftTailHandleBounds()

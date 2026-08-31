@@ -93,6 +93,17 @@ public sealed partial class EditorView
             StartBanana(x, y);
             return;
         }
+        if (tool != Tool.Slider && !ctrl && showTargets && objectSelection.Count == 1 && SelectedTrack is { } selectedObject)
+        {
+            foreach (var node in selectedObject.Nodes)
+                if (Near(Point(node), x, y, 9))
+                {
+                    tool = Tool.Slider;
+                    PickAnchor(selectedObject, node, false);
+                    BeginNodeDrag(selectedObject, node, DragKind.Anchor, x, y);
+                    return;
+                }
+        }
         if (tool == Tool.Slider && showTargets && SelectedTrack is { } selected)
         {
             foreach (var node in selected.Nodes)
@@ -398,7 +409,12 @@ public sealed partial class EditorView
         if (draftTrack == Guid.Empty)
         {
             history.Begin(L.Get("editor.command.drawTrack"));
-            track = new CurveTrack { Name = L.Get("editor.track.defaultName", Document.Tracks.Count + 1), Kind = CurveKind.Linear };
+            track = new CurveTrack
+            {
+                Name = L.Get("editor.track.defaultName", Document.Tracks.Count + 1),
+                Kind = CurveKind.Linear,
+                CompensateTinyDroplets = true
+            };
             Document.Tracks.Add(track);
             draftTrack = track.Id;
         }

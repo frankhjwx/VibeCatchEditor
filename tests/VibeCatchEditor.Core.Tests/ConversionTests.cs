@@ -89,15 +89,39 @@ internal static class ConversionTests
         True(slider.Path.Any(p => Math.Abs(p.X - 256) > 1), "Compensation changed displayed objects without changing the derived slider.");
     }
 
+    public static void HighSliderVelocity()
+    {
+        var track = new CurveTrack { Kind = CurveKind.Linear, Name = "High SV", CompensateTinyDroplets = true };
+        track.Nodes.Add(new Anchor { TimeMs = 0, X = 0 });
+        track.Nodes.Add(new Anchor { TimeMs = 20, X = 512 });
+        var result = CatchStreamConverter.Convert(With(track));
+        Valid(result);
+        var slider = result.Sliders.Single();
+        True(slider.SliderVelocityMultiplier is > 10 and <= 1000, "VCE Slider did not raise SV beyond the old limit.");
+        True(slider.MaxTickError <= CatchStreamConverter.AlignmentTolerance, "High-SV VCE Slider missed its target path.");
+    }
+
     public static void TinyBoundary()
     {
         var result = CatchStreamConverter.Convert(With(Constant(0, 1000, 0)), true);
         Valid(result);
         True(result.Sliders[0].TinyCompensationApplied && !result.Sliders[0].TinyCompensationSucceeded, "Unreachable X boundary was marked fully compensated.");
-        True(result.Diagnostics.Any(d => d.Contains("边界")), "Boundary limitation was not reported.");
+        True(result.Diagnostics.Count == 0, "A usable boundary-limited result exposed an internal compensation warning.");
         True(result.MaxTinyError > 0, "Positive offset at X=0 was silently removed.");
         True(result.Objects.All(o => o.X is >= 0 and <= 512 && o.PathX is >= 0 and <= 512), "Compensation emitted out-of-range coordinates.");
         True(result.MaxTickError <= CatchStreamConverter.AlignmentTolerance, "Tiny failure displaced fruit or ticks.");
+    }
+
+    public static void NumericalSamplingLimit()
+    {
+        var track = new CurveTrack { Kind = CurveKind.Bezier, Name = "Sharp curve", CompensateTinyDroplets = false };
+        track.Nodes.Add(new Anchor { TimeMs = 0, X = 0, HandleOut = new(500, 512) });
+        track.Nodes.Add(new Anchor { TimeMs = 1000, X = 512, HandleIn = new(-500, -512) });
+        var result = CatchStreamConverter.Convert(With(track), false);
+        Valid(result);
+        True(result.Diagnostics.Count == 0, "Numerical sampling details leaked into the user-visible diagnostics.");
+        True(result.MaxTickError <= CatchStreamConverter.AlignmentTolerance,
+            "Accepting the smallest sampling intervals displaced an exact gameplay knot.");
     }
 
     public static void CompleteContextRandom()

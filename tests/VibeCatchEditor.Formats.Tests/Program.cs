@@ -11,7 +11,7 @@ var tests = new (string Name, Action Run)[]
     ("Generated Bezier exports as slider and reports actual reconversion", CurveExport),
     ("Authored repeats retain span count and every repeat fruit and tick after export", AuthoredRepeats),
     ("Mixed segment kinds and repeat counts survive project files and old defaults", MixedProject),
-    ("Promoted imported repeat retains identity, object count and samples through editing", PromotedRepeat),
+    ("Converted Legacy repeat retains identity, object count and samples as a VCE Slider", PromotedRepeat),
     ("Changing promoted repeat count resizes edge samples without losing head or tail", ChangedRepeatEdges),
     ("Temporary SV restores following imported slider speed", RestoreSv),
     ("Independent duration formula survives the head lookup window", SliderTimingTests.RestorationStaysOutsideHeadWindow),
@@ -21,6 +21,7 @@ var tests = new (string Name, Action Run)[]
     ("Adjacent generated heads use one SV each and independent durations", SliderTimingTests.AdjacentGeneratedHeadsHaveOneSvEach),
     ("Shared generated SV restores only for the following imported slider", SliderTimingTests.SharedGeneratedSvRestoresOnlyForFollowingImportedSlider),
     ("A following generated head reestablishes original SV without an unused restore", SliderTimingTests.FollowingGeneratedHeadReestablishesOriginalSv),
+    ("Generated SV above 10 survives timing output and readback", SliderTimingTests.HighSvRoundTrip),
     ("Unsafe fractional or next-millisecond restoration is rejected atomically", SliderTimingTests.UnsafeRestorationWindowIsRejected),
     ("Fractional head restores original NaN state after the lookup window", SliderTimingTests.NaNAndFractionalHeadRestoreOriginalState),
     ("User project export durations pass an independent raw-field calculation", SliderTimingTests.UserProjectExportHasIndependentCorrectDurations),
@@ -89,6 +90,8 @@ keep,this,line
 256,192,4500,12,0,4800,1:2:3:60:spinner.wav
 400,120,6000,1,4,1:2:3:50:tail.wav
 """;
+
+static string ConvertibleRepeatFixture() => Fixture().Replace(",2,280,2|4|8,", ",2,1,2|4|8,", StringComparison.Ordinal);
 
 static void ReadOriginal()
 {
@@ -225,7 +228,7 @@ static void MixedProject()
 
 static void PromotedRepeat()
 {
-    var d = OsuBeatmapReader.Read(Fixture());
+    var d = OsuBeatmapReader.Read(ConvertibleRepeatFixture());
     var original = d.ImportedSliders.Single();
     Guid originalId = original.Id;
     int originalOrder = original.SourceOrder;
@@ -237,7 +240,7 @@ static void PromotedRepeat()
     foreach (var node in edit.Track.Nodes) node.X += 3;
     var restored = ProjectSerializer.Read(ProjectSerializer.Serialize(d));
     Check(d.ContentEquals(restored), "Editable imported repeat did not persist");
-    Equal(false, restored.Tracks.Single().CompensateTinyDroplets!.Value);
+    Equal(true, restored.Tracks.Single().CompensateTinyDroplets!.Value);
     var result = OsuBeatmapWriter.Serialize(restored, false);
     Equal(1, result.ReadBack.ImportedSliders.Count); Equal(2, result.ReadBack.ImportedSliders[0].SpanCount);
     Equal(original.X + 3, result.ReadBack.ImportedSliders[0].X);
@@ -249,7 +252,7 @@ static void PromotedRepeat()
 
 static void ChangedRepeatEdges()
 {
-    var d = OsuBeatmapReader.Read(Fixture());
+    var d = OsuBeatmapReader.Read(ConvertibleRepeatFixture());
     var edit = ImportedSliderEditing.ConvertToTrack(d, d.ImportedSliders.Single().Id);
     edit.Track.SpanCount = 3;
     var result = OsuBeatmapWriter.Serialize(d, false);

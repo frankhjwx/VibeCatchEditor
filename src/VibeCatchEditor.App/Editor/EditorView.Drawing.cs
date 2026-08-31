@@ -135,7 +135,7 @@ public sealed partial class EditorView
                 if (selected) c.Fill(rect, 0x314347, 4);
                 else if (rect.Contains(mouseX, mouseY)) c.Fill(rect, Surface, 4);
                 float iconX = indent ? 30 : 20;
-                if (diamond) Diamond(c, iconX, y + 14, indent ? 3 : 4, selected ? Accent : color);
+                if (diamond) Diamond(c, iconX, y + 14, indent ? 3 : 4, selected ? (indent ? Error : Accent) : color);
                 else c.Circle(iconX, y + 14, 4, color);
                 c.Text(label, iconX + 12, y + 6, indent ? 11 : 12, selected ? Foreground : Muted, leftPanel.Width - iconX - 25);
                 rows.Add((rect, id, trackId));
@@ -171,7 +171,7 @@ public sealed partial class EditorView
             bool beat = line.IsBeat;
             bool bar = Math.Abs((time - localTiming.OffsetMs) / localTiming.BeatLengthMs / localTiming.Meter - Math.Round((time - localTiming.OffsetMs) / localTiming.BeatLengthMs / localTiming.Meter)) < 0.0001;
             if (!beat && !line.IsTimingBoundary && step * pixelsPerMs < 7) continue;
-            c.Line(plot.X, y, plot.Right, y, line.IsTimingBoundary ? 0x845460u : beat ? Grid : 0x222933, bar || line.IsTimingBoundary ? 1.5f : 1);
+            c.Line(playfield.X, y, playfield.Right, y, line.IsTimingBoundary ? 0x845460u : beat ? Grid : 0x222933, bar || line.IsTimingBoundary ? 1.5f : 1);
             if (line.IsTimingBoundary || beat && (localTiming.BeatLengthMs * pixelsPerMs >= 25 || bar))
                 c.Text(Number(time), canvas.X + 6, Math.Clamp(y - 7, plot.Y, plot.Bottom - 14), 10, line.IsTimingBoundary ? Error : Muted, 46);
         }
@@ -238,7 +238,7 @@ public sealed partial class EditorView
                             || track.Id == draftTrack && tool == Tool.Slider) DrawHandle(node.HandleOut, DragKind.HandleOut);
                     }
                     bool nodeSelected = tool == Tool.Slider && anchorSelection.Contains(node.Id);
-                    Diamond(c, p.X, p.Y, nodeSelected ? 8 : 5.5f, nodeSelected ? Foreground : color, opacity);
+                    Diamond(c, p.X, p.Y, nodeSelected ? 8 : 5.5f, nodeSelected ? Error : color, opacity);
                     if (nodeSelected) c.Circle(p.X, p.Y, 3, Foreground);
                     void DrawHandle(MapPoint offset, DragKind part)
                     {

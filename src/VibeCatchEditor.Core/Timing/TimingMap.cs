@@ -23,7 +23,8 @@ public static class TimingMap
             var difficulty = group.Green ?? group.Red;
             if (difficulty is not null)
             {
-                sv = difficulty.BeatLengthMs < 0 ? Math.Clamp(100 / -difficulty.BeatLengthMs, 0.1, 10) : 1;
+                sv = difficulty.BeatLengthMs < 0 ? Math.Clamp(100 / -difficulty.BeatLengthMs,
+                    LegacyCatchRules.MinimumSliderVelocityMultiplier, LegacyCatchRules.MaximumSliderVelocityMultiplier) : 1;
                 generateTicks = !double.IsNaN(difficulty.BeatLengthMs);
             }
         }
