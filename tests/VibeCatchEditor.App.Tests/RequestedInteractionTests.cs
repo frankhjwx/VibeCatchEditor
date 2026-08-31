@@ -71,11 +71,28 @@ internal static class RequestedInteractionTests
 
         var movedFruit = ui.View.Document.Fruits.Single(item => item.Id == fruit.Id);
         var movedTrack = ui.View.Document.Tracks.Single(item => item.Id == track.Id);
-        Near(1137, movedFruit.TimeMs); Near(130, movedFruit.X);
-        Near(1637, movedTrack.Nodes[0].TimeMs); Near(280, movedTrack.Nodes[0].X);
-        Near(2737, movedTrack.Nodes[1].TimeMs); Near(330, movedTrack.Nodes[1].X);
+        Near(1100, movedFruit.TimeMs); Near(130, movedFruit.X);
+        Near(1600, movedTrack.Nodes[0].TimeMs); Near(280, movedTrack.Nodes[0].X);
+        Near(2700, movedTrack.Nodes[1].TimeMs); Near(330, movedTrack.Nodes[1].X);
         ui.Key('Z', ctrl: true);
         Check(ui.View.Document.ContentEquals(baseline), "One undo did not restore the complete multi-object drag.");
+    }
+
+    public static void SingleSliderSnap()
+    {
+        var map = new MapDocument { DurationMs = 10000 };
+        map.TimingPoints.Add(new() { TimeMs = 0, BeatLengthMs = 500, Uninherited = true });
+        var track = Track("Snapped Slider", 1000, 200, 2000, 300);
+        map.Tracks.Add(track);
+        var ui = Load(map);
+
+        ui.DownMap(1000, 200);
+        ui.MoveMap(1137, 240);
+        ui.UpMap(1137, 240);
+
+        var moved = ui.View.Document.Tracks.Single();
+        Near(1125, moved.Nodes[0].TimeMs); Near(240, moved.Nodes[0].X);
+        Near(2125, moved.Nodes[1].TimeMs); Near(340, moved.Nodes[1].X);
     }
 
     public static void PlayfieldPadding()

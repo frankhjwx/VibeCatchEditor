@@ -116,11 +116,6 @@ public sealed partial class EditorView
         var pointer = Transform.ToMap(x, y);
         double deltaTime = pointer.TimeMs - startPointer.TimeMs;
         double deltaX = pointer.X - startPointer.X;
-        var singleFruit = objectSelection.Count == 1
-            ? objectDragStart.Fruits.FirstOrDefault(item => objectSelection.Contains(item.Id))
-            : null;
-        if (singleFruit is not null && snap)
-            deltaTime = TimingMap.Snap(Document, singleFruit.TimeMs + deltaTime, divisor) - singleFruit.TimeMs;
         double minTime = double.PositiveInfinity, maxTime = double.NegativeInfinity;
         double minX = double.PositiveInfinity, maxX = double.NegativeInfinity;
 
@@ -147,6 +142,8 @@ public sealed partial class EditorView
             IncludeTime(shower.EndTimeMs);
         }
 
+        if (snap && double.IsFinite(minTime))
+            deltaTime = TimingMap.Snap(Document, minTime + deltaTime, divisor) - minTime;
         if (double.IsFinite(minTime)) deltaTime = Math.Clamp(deltaTime, -minTime, Document.DurationMs - maxTime);
         else deltaTime = 0;
         if (double.IsFinite(minX)) deltaX = Math.Clamp(deltaX, -minX, 512 - maxX);
