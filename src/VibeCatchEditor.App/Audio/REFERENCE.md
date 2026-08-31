@@ -1,0 +1,33 @@
+# Audio transport
+
+`AudioTransport` queues load, play, pause and seek operations on one worker. The UI reads its immutable `State` snapshot; it does not call the decoder or output device. `LoadAsync` and `WaitForCommandsAsync` allow callers to await applied operations. `CanPlay` stays true while a loaded device is paused.
+
+The output uses `WaveOutEvent` with the system default device, three buffers and 80 ms requested latency. MP3 decoding uses Windows Media Foundation; OGG Vorbis uses NVorbis; WAV uses NAudio's WAV reader. All streams are converted to 16-bit PCM before output. This version accepts mono and stereo audio. No system or device volume settings are changed.
+
+MP3 loading continuously decodes into a PCM cache before reporting ready. The cache uses 64 KiB chunks, a 512 MiB decoded-data limit, and cancellation checks between reads when another load supersedes it or the transport is disposed. A five-minute 44.1 kHz stereo track needs about 50 MiB. Length and seek positions come from actual decoded PCM frames, including any padding supplied by the decoder, rather than estimated container duration. Seeking selects a complete frame; a fractional request rounds down by less than one sample frame. Cached PCM is released when the reader is disposed.
+
+This is necessary because [Media Foundation's SetCurrentPosition does not guarantee an exact seek](https://learn.microsoft.com/en-us/windows/win32/api/mfreadwrite/nf-mfreadwrite-imfsourcereader-setcurrentposition), while NAudio's reader reports the requested byte position before reading the returned samples. The cache establishes one continuous decoded timeline for playback, seek and duration; no arbitrary timing offset is applied.
+
+While playing, `PositionMs` is the seek base plus `waveOutGetPosition` bytes divided by the output format's bytes per second. Source-reader position is not a playback clock because its buffered reads run ahead of the device. Pending seek requests immediately own the displayed position until applied. A seek stops the old output, waits for its playback thread, discards queued buffers, seeks the decoder and opens fresh output buffers. Playing seeks resume; paused seeks remain paused. Superseded queued seeks are skipped. EOF reports the duration and replay starts at zero.
+
+Each output session is started once. Resuming from pause rebuilds output at the device position; it does not call `Play` again on the old session, because EOF can race the state check before NAudio raises `PlaybackStopped`. If stopping exceeds three seconds, the session and its reader are detached from the active clock. They are disposed only after that session's stop callback; `PlaybackState.Stopped` alone does not prove its thread has stopped reading. A seek/replay can rebuild a separate reader/output once per load. A second timeout retains an unavailable/error state until an explicit reload, rather than repeatedly reusing the failed session. Retired resources remain allocated if a driver never completes the callback; diagnostics record the session, playback state and thread-pool counters. This recovery does not identify or repair a stalled native driver.
+
+Every Media Foundation decoder in this application is created through `MediaFoundationAudioReader`. Its shared lease owns startup and shuts down the process subsystem only after all active decode operations finish. Cached readers retain PCM without retaining a Media Foundation decoder. Additional Media Foundation users in this process must share that lifetime boundary.
+
+Fixed MIT-licensed dependencies, all providing `netstandard2.0` assemblies compatible with the application's .NET 8 target:
+
+- `NAudio.Core`, `NAudio.WinMM`, `NAudio.Wasapi` **2.2.1**. The WinForms package is not used. References: [WaveOutEvent](https://github.com/naudio/NAudio/blob/v2.2.1/NAudio.WinMM/WaveOutEvent.cs), [MediaFoundationReader](https://github.com/naudio/NAudio/blob/v2.2.1/NAudio.Wasapi/MediaFoundationReader.cs), [MediaFoundationApi lifecycle](https://github.com/naudio/NAudio/blob/v2.2.1/NAudio.Wasapi/MediaFoundation/MediaFoundationHelpers.cs).
+- `NAudio.Vorbis` **1.5.0** and `NVorbis` **0.10.4**. Reference: [VorbisWaveReader](https://github.com/naudio/Vorbis/blob/v1.5.0/NAudio.Vorbis/VorbisWaveReader.cs).
+
+Required licence texts are retained in `Audio/Licenses/` and copied to builds. Transitive versions are in the application lock file. No upstream audio implementation is copied into the application.
+
+`VibeCatchEditor.Audio.Tests` links these production audio sources to test the boundary independently of editor rendering. Device tests use real output devices with output PCM gain set to zero, without changing system/device volume or the editor's normal playback gain. Source decoding and sample comparisons still use the original data. The generated four-second WAV contains a low-amplitude 440 Hz stereo tone, but automated playback is silent. Controlled-output tests inject delayed stop callbacks and repeated failures to verify reader ownership and recovery. A generated OGG tone is included in the test fixtures and can be regenerated using the existing development-machine FFmpeg:
+
+```powershell
+ffmpeg -hide_banner -loglevel warning -y -f lavfi -i 'sine=frequency=440:duration=4:sample_rate=44100' -af 'volume=0.03' -ac 2 -c:a libvorbis tests/VibeCatchEditor.Audio.Tests/Fixtures/quiet-tone.ogg
+dotnet run --project tests/VibeCatchEditor.Audio.Tests -c Release
+```
+
+The tests compare PCM at forward, backward, zero and end-of-file seeks against a continuous decode of both supplied MP3 files, including the first returned sample. They also compare the real device clock against elapsed time across playback, verify frame-aligned paused seeks, and check cancellation and recovery. These establish alignment within the chosen decoder's continuous PCM timeline; they do not establish equality with another decoder's encoder-delay or gapless-padding policy.
+
+FFmpeg is a test-fixture tool only; the application does not require it. The worker samples the device clock every 10 ms while playing; snapshots are not extrapolated between samples. Requested output buffering remains 80 ms. Physical output latency, audibility, and alignment against a stable client require listening or device-loopback measurements; device-clock tests alone do not verify those properties.

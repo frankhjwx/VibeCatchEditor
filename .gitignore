@@ -1,0 +1,21 @@
+artifacts/
+**/bin/
+**/obj/
+.vs/
+*.user
+
+# Local credentials and agent state
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+.codex/
+.agents/
+__pycache__/
+*.pyc
+
+# User-supplied artwork stays local
+/assets/skins/default.osk
