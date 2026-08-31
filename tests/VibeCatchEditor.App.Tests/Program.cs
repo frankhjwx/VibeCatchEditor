@@ -5,6 +5,11 @@ using VibeCatchEditor.Core;
 var tests = new (string Name, Action Run)[]
 {
     ("Fruit tools place quarters and sixths without moving existing objects", PlaceOnBothGrids),
+    ("Beat snap slider exposes every requested divisor through one drag control", RequestedInteractionTests.SnapDivisors),
+    ("Double-click enters one Slider and other clicks leave its edit mode", RequestedInteractionTests.DoubleClickEditing),
+    ("Selected parents drag together by continuous time and X offsets", RequestedInteractionTests.MultiObjectDrag),
+    ("The main canvas reserves a fixed CS0 fruit radius beyond both playfield edges", RequestedInteractionTests.PlayfieldPadding),
+    ("Banana placement uses left-start right-end and exposes precise times", RequestedInteractionTests.BananaPlacement),
     ("Selecting an exact numeric time does not resnap or create undo", SelectOffGrid),
     ("A multi-update fruit drag is one undo and redo transaction", DragUndoRedo),
     ("Escape cancels a drag and a later mouse-up cannot commit it", EscapeDrag),
@@ -114,9 +119,9 @@ static void MultiTimingEditing()
     doc.TimingPoints.Add(new() { TimeMs = 1100, BeatLengthMs = 400, Uninherited = true });
     doc.TimingPoints.Add(new() { TimeMs = 1180, BeatLengthMs = -50, Uninherited = false });
     ui.View.LoadDocument(doc); ui.Paint();
-    ui.ClickText("1/6"); ui.Key('F'); ui.ClickMap(1210, 100);
+    ui.SetSnapDivisor(6); ui.Key('F'); ui.ClickMap(1210, 100);
     Near(1233.333333333333, ui.View.Document.Fruits.Single().TimeMs);
-    ui.ClickText("1/4"); ui.ClickMap(1490, 400);
+    ui.SetSnapDivisor(4); ui.ClickMap(1490, 400);
     Near(1500, ui.View.Document.Fruits.Last().TimeMs);
     True(ui.Canvas.Lines.Any(l => l.Color == 0x845460), "The red timing boundary is absent from the painted grid.");
     ui.Key('Z', ctrl: true); ui.Key('Z', ctrl: true);
@@ -173,7 +178,7 @@ static void PlaceOnBothGrids()
     var quarter = ui.View.Document.Fruits.Single(f => !original.ContainsKey(f.Id));
     Near(1125, quarter.TimeMs);
     Near(480, quarter.X);
-    ui.ClickText("1/6");
+    ui.SetSnapDivisor(6);
     True(ui.View.SnapDivisor == 6, "Sixth grid was not selected.");
     foreach (var fruit in ui.View.Document.Fruits.Where(f => original.ContainsKey(f.Id)))
         PointNear(original[fruit.Id], new(fruit.TimeMs, fruit.X));
@@ -394,10 +399,11 @@ static void UpwardPainting()
     True(beat.Y < zero.Y, "The time ruler increases downward.");
     True(zero.Y >= plot.Bottom - 16 && zero.Y + 14 <= plot.Bottom,
         "The zero-time label must remain readable inside the bottom edge.");
-    True(ui.Canvas.Lines.Any(l => l.X1 == plot.X && l.X2 == plot.Right
+    var canvasPlot = ui.View.CanvasPlotBounds;
+    True(ui.Canvas.Lines.Any(l => l.X1 == canvasPlot.X && l.X2 == canvasPlot.Right
         && l.Y1 == plot.Bottom && l.Y2 == plot.Bottom), "The zero-time grid line is not at the bottom.");
-    var head = ui.Canvas.Lines.Single(l => l.Color == 0xF2C66D && l.X1 == plot.X
-        && l.X2 == plot.Right && l.Y1 == l.Y2);
+    var head = ui.Canvas.Lines.Single(l => l.Color == 0xF2C66D && l.X1 == canvasPlot.X
+        && l.X2 == canvasPlot.Right && l.Y1 == l.Y2);
     Near(plot.Bottom - ui.View.PlayheadMs * ui.View.PixelsPerMs, head.Y1);
 }
 
@@ -660,10 +666,10 @@ static void CircleSizeAcrossViews()
     AssertObjectKinds(ui, preview, field.Width);
     ui.SetCs("7");
     Near(7, ui.View.Document.CircleSize);
-    double ratio = CatchSize.FruitRadius(7) / CatchSize.FruitRadius(originalCs);
-    True(ratio < 1, "CS setup did not reduce object size.");
-    AssertScaled(main, MainInterior(), ratio);
-    AssertScaled(preview, ObjectCircles(ui, preview: true), ratio);
+    double previewRatio = CatchSize.FruitRadius(7) / CatchSize.FruitRadius(originalCs);
+    True(previewRatio < 1, "CS setup did not reduce object size.");
+    AssertScaled(main, MainInterior(), previewRatio);
+    AssertScaled(preview, ObjectCircles(ui, preview: true), previewRatio);
     True(ui.View.IsDirty, "An accepted CS edit did not dirty the map.");
     ui.Key('Z', ctrl: true);
     Near(originalCs, ui.View.Document.CircleSize);
@@ -671,8 +677,8 @@ static void CircleSizeAcrossViews()
     True(MainInterior().SequenceEqual(main), "CS undo did not restore main object sizes.");
     True(ObjectCircles(ui, preview: true).SequenceEqual(preview), "CS undo did not restore preview sizes.");
     ui.Key('Y', ctrl: true);
-    AssertScaled(main, MainInterior(), ratio);
-    AssertScaled(preview, ObjectCircles(ui, preview: true), ratio);
+    AssertScaled(main, MainInterior(), previewRatio);
+    AssertScaled(preview, ObjectCircles(ui, preview: true), previewRatio);
 }
 
 static void MainCurveSelectionOpacity()
@@ -719,7 +725,8 @@ static void MainCurveSelectionOpacity()
 static IEnumerable<RecordingCanvas.Operation> ViewCommands(Ui ui, bool preview)
 {
     Rect plot = ui.Plot;
-    return ui.Canvas.Operations.Where(c => c.Clip is { } clip && (preview ? clip.X > plot.Right : clip == plot));
+    Rect canvasPlot = ui.View.CanvasPlotBounds;
+    return ui.Canvas.Operations.Where(c => c.Clip is { } clip && (preview ? clip.X > plot.Right : clip == canvasPlot));
 }
 
 static IEnumerable<RecordingCanvas.Operation> CurveCommands(Ui ui, bool preview)
@@ -745,13 +752,16 @@ static void AssertPreviewDrawOrder(Ui ui)
     True(lastCurve < firstObject, "Preview target curves were painted over the converted objects.");
 }
 
-static void AssertScaled(RecordingCanvas.Dot[] before, RecordingCanvas.Dot[] after, double ratio)
+static void AssertScaled(RecordingCanvas.Dot[] before, RecordingCanvas.Dot[] after, double ratio, bool comparePosition = true)
 {
     True(before.Length > 0 && before.Length == after.Length, "CS changed the compared object sequence.");
     for (int i = 0; i < before.Length; i++)
     {
-        Near(before[i].X, after[i].X);
-        Near(before[i].Y, after[i].Y);
+        if (comparePosition)
+        {
+            Near(before[i].X, after[i].X);
+            Near(before[i].Y, after[i].Y);
+        }
         Near(before[i].Radius * ratio, after[i].Radius);
     }
 }
@@ -806,6 +816,18 @@ sealed class Ui
         Key(13);
     }
     public void Key(int key, bool ctrl = false, bool shift = false) { View.KeyDown(key, ctrl, shift); Paint(); }
+    public void SetSnapDivisor(int divisor)
+    {
+        int[] values = [4, 5, 6, 7, 8, 9, 12, 16];
+        int index = Array.IndexOf(values, divisor);
+        if (index < 0) throw new ArgumentOutOfRangeException(nameof(divisor));
+        var slider = View.SnapSliderBounds;
+        float left = slider.X + 7, right = slider.Right - 31;
+        float x = left + index / (float)(values.Length - 1) * (right - left);
+        View.PointerDown(x, slider.Y + slider.Height / 2, 0, false, false);
+        View.PointerUp(x, slider.Y + slider.Height / 2, 0);
+        Paint();
+    }
     public void Type(string value) { foreach (char c in value) View.TextInput(c); }
     public void ClickFruit(Guid id) { var fruit = Fruit(id); ClickMap(fruit.TimeMs, fruit.X); }
     public void ClickText(string text)
@@ -837,16 +859,7 @@ sealed class Ui
         View.PointerDown(x, y, 0, false, false); Paint();
         View.PointerUp(x, y, 0); Paint();
     }
-    public Rect Plot
-    {
-        get
-        {
-            var rightLabel = Canvas.Texts.First(t => t.Value == "512");
-            var leftLabel = Canvas.Texts.Single(t => t.Value == "0" && t.Y == rightLabel.Y);
-            return Canvas.Clips.Single(r => Math.Abs(r.X - (leftLabel.X + 9)) < 0.01f
-                && Math.Abs(r.Right - (rightLabel.X + 9)) < 0.01f);
-        }
-    }
+    public Rect Plot => View.PlayfieldBounds;
     public RecordingCanvas.Dot PaintedFruitAtX(double mapX)
     {
         float screenX = Plot.X + (float)(mapX / 512) * Plot.Width;

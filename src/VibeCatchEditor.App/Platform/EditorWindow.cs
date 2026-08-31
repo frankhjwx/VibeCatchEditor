@@ -59,7 +59,7 @@ internal sealed partial class EditorWindow : IDisposable
         var className = "VibeCatchEditor." + Environment.ProcessId;
         var windowClass = new Native.WindowClass
         {
-            Size = (uint)Marshal.SizeOf<Native.WindowClass>(), Style = 3,
+            Size = (uint)Marshal.SizeOf<Native.WindowClass>(), Style = 3 | 0x0008,
             Procedure = procedure, Instance = instance, ClassName = className,
             Cursor = Native.LoadCursor(0, (nint)32512)
         };
@@ -180,6 +180,10 @@ internal sealed partial class EditorWindow : IDisposable
                 Native.SetFocus(window);
                 view.PointerDown(x, y, message == 0x0207 ? 1 : message == 0x0204 ? 2 : 0, Native.Shift, Native.Control);
                 if (view.WantsCapture) Native.SetCapture(window);
+                UpdateTitle(); Invalidate(); return 0;
+            case 0x0203: // WM_LBUTTONDBLCLK
+                Native.SetFocus(window);
+                view.PointerDoubleClick(x, y, Native.Shift, Native.Control);
                 UpdateTitle(); Invalidate(); return 0;
             case 0x0200:
                 view.PointerMove(x, y, Native.Shift, Native.Control);

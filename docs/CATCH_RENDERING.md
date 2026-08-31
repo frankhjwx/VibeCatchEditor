@@ -46,7 +46,7 @@ PNG 按原始逻辑宽高显示，@2x 的逻辑尺寸为像素尺寸的一半。
 
 ## 实际 stream、Tiny 和 hyperdash
 
-时间—X 轨迹按每个锚点的 OutgoingKind（null 继承轨迹 Kind）求值，可混合线性与贝塞尔段。生成满足速度约束的首 span 路径，再按 SpanCount 产生 head / tick / repeat / legacy-last-tick / tail 和 tiny 事件。首 span 节点共用于后续往返；对象按路径弧长定位，叠加固定 Legacy RNG。分割插点保持该段形状，不自动成为 tick；SliderTickRate 与 4/6 分拍独立。
+时间—X 轨迹按每个锚点的 OutgoingKind（null 继承轨迹 Kind）求值，可混合线性与贝塞尔段。生成满足速度约束的首 span 路径，再按 SpanCount 产生 head / tick / repeat / legacy-last-tick / tail 和 tiny 事件。首 span 节点共用于后续往返；对象按路径弧长定位，叠加固定 Legacy RNG。分割插点保持该段形状，不自动成为 tick；SliderTickRate 与编辑分拍吸附独立。
 
 未编辑的导入 slider 按原 L/B/P/C 路径、声明长度和 repeat 生成，反向 span 保留对应 tick 位置并生成折返 fruit。选中后点击“编辑 Slider”，以一个事务转为首 span 的时间—X 线性节点，保留父 ID、源顺序、SpanCount 和原始 sample 信息；之后可编辑节点、切换“下一段”为贝塞尔。转换前后比较对象类型、时刻和 X 误差，失败不替换原对象。所有 slider 锁定起始红点和继承 SV，沿途 timing 变化不修改速度。
 

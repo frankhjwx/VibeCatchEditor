@@ -21,7 +21,7 @@ public sealed partial class EditorView
         canvas = new(leftWidth + 1, 84, Math.Max(120, width - leftWidth - rightWidth - 2), bodyHeight);
         plot = new(canvas.X + 58, canvas.Y + 68, Math.Max(50, canvas.Width - 82), Math.Max(80, canvas.Height - 80));
         overview = new(220, height - 77, Math.Max(100, width - 248), 40);
-        if (useArScale) pixelsPerMs = CatchScrollTiming.PixelsPerMs(Document.ApproachRate, plot.Width);
+        if (useArScale) pixelsPerMs = CatchScrollTiming.PixelsPerMs(Document.ApproachRate, Playfield.Width);
         ClampView();
         EnsureConversion();
         c.Fill(new(0, 0, width, height), Background);
@@ -53,22 +53,35 @@ public sealed partial class EditorView
         ToolButton(L.Get("ui.selectTool"), Tool.Select, 76);
         ToolButton(L.Get("ui.fruitTool"), Tool.Fruit, 82);
         ToolButton(L.Get("ui.sliderTool"), Tool.Slider, 90);
+        ToolButton(L.Get("ui.bananaTool"), Tool.Banana, 94);
         c.Line(x + 7, 49, x + 7, 75, Grid); x += 22;
-        c.Text(L.Get("ui.snap"), x, 55, 12, Muted); x += 40;
-        Button(c, new(x, 47, 45, 30), L.Get("ui.quarter"), () => { divisor = 4; snap = true; }, snap && divisor == 4); x += 49;
-        Button(c, new(x, 47, 45, 30), L.Get("ui.sixth"), () => { divisor = 6; snap = true; }, snap && divisor == 6); x += 49;
+        c.Text(L.Get("ui.snap"), x, 55, 12, Muted); x += 38;
+        snapSlider = new(x, 47, 112, 30);
+        float snapLeft = snapSlider.X + 7, snapRight = snapSlider.Right - 31;
+        float snapX = snapLeft + Array.IndexOf(SnapDivisors, divisor) / (float)(SnapDivisors.Length - 1) * (snapRight - snapLeft);
+        c.Line(snapLeft, 62, snapRight, 62, snap ? Accent : Grid, 2);
+        c.Circle(snapX, 62, 6, snap ? Accent : Muted);
+        c.Text(L.Get("ui.snapDivisor", divisor), snapSlider.Right - 28, 55, 11, snap ? Foreground : Muted, 30);
+        x += 116;
         Button(c, new(x, 47, 46, 30), L.Get("ui.free"), () => snap = !snap, !snap); x += 63;
         Button(c, new(x, 47, 60, 30), L.Get("ui.undo"), Undo, false, history.CanUndo); x += 64;
         Button(c, new(x, 47, 60, 30), L.Get("ui.redo"), Redo, false, history.CanRedo); x += 72;
         Button(c, new(x, 47, 80, 30), L.Get("ui.resetView"), ResetView);
         x += 85;
-        Button(c, new(x, 47, 70, 30), L.Get("ui.skin"), () => RequestLoadSkin?.Invoke());
-        x += 74;
-        Button(c, new(x, 47, 93, 30), L.Get("ui.tinyAlign"), () => compensateTinyDroplets = !compensateTinyDroplets, compensateTinyDroplets);
-        x += 97;
-        Button(c, new(x, 47, 75, 30), L.Get("ui.tickRate", Number(Document.SliderTickRate)), CycleTickRate);
+        if (width >= 1080)
+        {
+            Button(c, new(x, 47, 70, 30), L.Get("ui.skin"), () => RequestLoadSkin?.Invoke());
+            x += 74;
+        }
+        if (width >= 1200)
+        {
+            Button(c, new(x, 47, 93, 30), L.Get("ui.tinyAlign"), () => compensateTinyDroplets = !compensateTinyDroplets, compensateTinyDroplets);
+            x += 97;
+        }
+        if (width >= 1320)
+            Button(c, new(x, 47, 75, 30), L.Get("ui.tickRate", Number(Document.SliderTickRate)), CycleTickRate);
         var timing = TimingMap.At(Document, playhead);
-        if (width > 1060) c.Text(L.Get("ui.timing", 60000 / timing.BeatLengthMs, timing.SliderVelocityMultiplier), width - 220, 56, 12, Muted, 208);
+        if (width > 1320) c.Text(L.Get("ui.timing", 60000 / timing.BeatLengthMs, timing.SliderVelocityMultiplier), width - 220, 56, 12, Muted, 208);
         c.Line(0, 83, width, 83, Grid);
         void ToolButton(string text, Tool mode, float w)
         {
@@ -141,6 +154,7 @@ public sealed partial class EditorView
         Button(c, matchButton, L.Get("ui.restoreAr"), RestoreArScale, useArScale);
         c.Line(canvas.X, 122, canvas.Right, 122, Grid);
         c.Text(L.Get("ui.timeAxis"), canvas.X + 11, 132, 10, Muted, 43);
+        var playfield = Playfield;
         for (int x = 0; x <= 512; x += 128)
         {
             float sx = Screen(new(0, x)).X;
@@ -163,18 +177,27 @@ public sealed partial class EditorView
         }
         c.Unclip();
         c.Clip(plot);
+        if (draftBanana != Guid.Empty && Document.BananaShowers.FirstOrDefault(item => item.Id == draftBanana) is { } draft)
+        {
+            float startY = Screen(new(draft.TimeMs, 256)).Y;
+            double cursorTime = plot.Contains(mouseX, mouseY) ? MapAt(mouseX, mouseY, true).TimeMs : draft.TimeMs;
+            float cursorY = Screen(new(Math.Max(draft.TimeMs, cursorTime), 256)).Y;
+            c.Fill(new(plot.X, Math.Min(startY, cursorY), plot.Width, Math.Abs(startY - cursorY)), 0x29251B);
+            c.Line(plot.X, startY, plot.Right, startY, Gold, 2);
+            c.Line(plot.X, cursorY, plot.Right, cursorY, Gold, 1);
+        }
         foreach (var item in conversion!.Objects)
         {
             var p = Screen(new(item.TimeMs, item.X));
-            float radius = (float)(CatchSize.FruitRadius(Document.CircleSize) * plot.Width / 512);
+            float radius = (float)(CatchSize.FruitRadius(Document.CircleSize) * playfield.Width / 512);
             if (p.Y < plot.Y - radius * 1.5f || p.Y > plot.Bottom + radius * 1.5f) continue;
-            DrawCatchObject(c, item, p.X, p.Y, plot.Width);
+            DrawCatchObject(c, item, p.X, p.Y, playfield.Width);
             if (IsObjectSelected(item.SourceId))
-                c.Circle(p.X, p.Y, ObjectRadius(item.Kind) * plot.Width / 512 + 3, Accent, false, 1.5f);
+                c.Circle(p.X, p.Y, ObjectRadius(item.Kind) * playfield.Width / 512 + 3, Accent, false, 1.5f);
         }
         if (showTargets)
         {
-            DrawImportedCurves(c, plot.X, plot.Width, plot.Bottom, viewStart, pixelsPerMs,
+            DrawImportedCurves(c, playfield.X, playfield.Width, plot.Bottom, viewStart, pixelsPerMs,
                 viewStart, viewStart + plot.Height / pixelsPerMs, false);
             foreach (var track in Document.Tracks)
             {
@@ -232,18 +255,18 @@ public sealed partial class EditorView
         if (tool == Tool.Fruit && plot.Contains(mouseX, mouseY) && drag == DragKind.None)
         {
             var p = Screen(MapAt(mouseX, mouseY, true));
-            c.Circle(p.X, p.Y, (float)(CatchSize.FruitRadius(Document.CircleSize) * plot.Width / 512), Foreground, false, 1.5f);
+            c.Circle(p.X, p.Y, (float)(CatchSize.FruitRadius(Document.CircleSize) * playfield.Width / 512), Foreground, false, 1.5f);
             c.Line(plot.X, p.Y, plot.Right, p.Y, 0x61553B);
         }
         float headY = Screen(new(playhead, 0)).Y;
         c.Line(plot.X, headY, plot.Right, headY, Gold, 1.5f);
         c.Fill(new(plot.X, headY - 3, 5, 6), Gold);
         c.Unclip();
-        if (draftTrack != Guid.Empty)
+        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty)
         {
             var r = new Rect(plot.X + 8, plot.Bottom - 37, Math.Min(plot.Width - 16, 380), 29);
             c.Fill(r, 0x343042, 5);
-            c.Text(L.Get("ui.drawingHint"), r.X + 9, r.Y + 7, 11, Foreground, r.Width - 16);
+            c.Text(L.Get(draftBanana != Guid.Empty ? "ui.bananaDrawingHint" : "ui.drawingHint"), r.X + 9, r.Y + 7, 11, Foreground, r.Width - 16);
         }
     }
 
@@ -358,9 +381,27 @@ public sealed partial class EditorView
         }
         else if (SelectedBananaShower is { } shower)
         {
-            c.Text(L.Get("ui.importedBananas"), x, y, 16, Gold, w, true); y += 31;
-            c.Text(L.Get("ui.timeRange", Number(shower.TimeMs), Number(shower.EndTimeMs)), x, y, 12, Foreground, w); y += 25;
-            c.Text(L.Get("ui.bananaHint"), x, y, 12, Muted, w); y += 25;
+            c.Text(L.Get("ui.bananaBadge"), x, y, 16, Gold, w, true); y += 31;
+            if (draftBanana == shower.Id)
+            {
+                c.Text(L.Get("ui.timeRange", Number(shower.TimeMs), Number(shower.EndTimeMs)), x, y, 12, Foreground, w); y += 25;
+                c.Text(L.Get("ui.bananaDrawingHint"), x, y, 12, Muted, w);
+            }
+            else
+            {
+                Field(c, x, ref y, w, L.Get("ui.startTimeField"), shower.TimeMs, value =>
+                {
+                    if (value < 0 || value >= shower.EndTimeMs) throw new ArgumentException(L.Get("ui.bananaTimeRange"));
+                    Document.BananaShowers.First(item => item.Id == shower.Id).TimeMs = value;
+                });
+                Field(c, x, ref y, w, L.Get("ui.endTimeField"), shower.EndTimeMs, value =>
+                {
+                    if (value <= shower.TimeMs || value > Document.DurationMs) throw new ArgumentException(L.Get("ui.bananaTimeRange"));
+                    Document.BananaShowers.First(item => item.Id == shower.Id).EndTimeMs = value;
+                });
+                c.Text(L.Get("ui.bananaHint"), x, y, 12, Muted, w); y += 30;
+                Button(c, new(x, y, w, 29), L.Get("ui.deleteBanana"), DeleteSelection);
+            }
         }
         else
         {

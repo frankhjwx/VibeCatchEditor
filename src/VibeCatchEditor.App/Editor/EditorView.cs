@@ -16,7 +16,7 @@ public sealed partial class EditorView
     private readonly List<NumericField> fields = [];
     private readonly List<(Rect Bounds, Guid Id, Guid Track)> rows = [];
     private float width, height, mouseX = -1, mouseY = -1, listScroll;
-    private Rect canvas, plot, leftPanel, rightPanel, overview, listBounds;
+    private Rect canvas, plot, leftPanel, rightPanel, overview, listBounds, snapSlider;
     private double viewStart, pixelsPerMs = 0.09, playhead = 1500;
     private bool useArScale;
     private CatchSkin? skin;
@@ -26,14 +26,19 @@ public sealed partial class EditorView
     private bool convertedWithCompensation;
     private HashSet<(Guid SourceId, int EventIndex)> hyperdashObjects = [];
     private Dictionary<Guid, int> skinIndices = [];
-    private Guid selection, selectedTrack, draftTrack;
+    private Guid selection, selectedTrack, draftTrack, draftBanana;
     private Tool tool;
     private DragKind drag, selectedPart;
     private double dragStartTime;
     private float dragStartX, dragStartY;
     private bool dragMoved;
     private MapPoint dragOffset;
+    private MapDocument? objectDragStart;
+    private bool objectDragPrepared;
     private bool snap = true;
+    private static readonly int[] SnapDivisors = [4, 5, 6, 7, 8, 9, 12, 16];
+    // Keep edge room stable while CS is edited; 54.4 is the CS=0 fruit radius.
+    private const float PlayfieldPadding = 54.4f;
     private int divisor = 4, menu = -1, editField = -1;
     private string editBuffer = "", fieldError = "";
     private bool replaceText = true, showTargets = true, showPreviewCurves;
@@ -49,6 +54,9 @@ public sealed partial class EditorView
     public double ViewStartMs => viewStart;
     public double PixelsPerMs => pixelsPerMs;
     public int SnapDivisor => divisor;
+    public Rect PlayfieldBounds => Playfield;
+    public Rect CanvasPlotBounds => plot;
+    public Rect SnapSliderBounds => snapSlider;
     public string ActiveTool => tool.ToString();
     public string StatusMessage { get; private set; } = L.Get("editor.status.demoLoaded");
     public void SetNotice(string notice) => StatusMessage = notice;
@@ -79,11 +87,20 @@ public sealed partial class EditorView
         hyperdashObjects = HyperDashCalculator.GetHyperDashStarts(conversion.Objects, Document.CircleSize);
     }
 
-    private enum Tool { Select, Fruit, Slider }
-    private enum DragKind { None, Fruit, Anchor, HandleIn, HandleOut, DraftHandle, Pan, Timeline, Marquee }
+    private enum Tool { Select, Fruit, Slider, Banana }
+    private enum DragKind { None, Objects, Anchor, HandleIn, HandleOut, DraftHandle, Pan, Timeline, Marquee, SnapDivisor }
     private sealed record HitArea(Rect Bounds, Action Action, bool Enabled);
     private sealed record NumericField(Rect Bounds, string Label, double Value, Action<double> Apply);
-    private TimelineTransform Transform => new(plot.X, plot.Bottom, plot.Width, viewStart, pixelsPerMs);
+    private float PlayfieldScale => plot.Width / (512 + PlayfieldPadding * 2);
+    private Rect Playfield
+    {
+        get
+        {
+            float margin = PlayfieldPadding * PlayfieldScale;
+            return new(plot.X + margin, plot.Y, 512 * PlayfieldScale, plot.Height);
+        }
+    }
+    private TimelineTransform Transform => new(Playfield.X, plot.Bottom, Playfield.Width, viewStart, pixelsPerMs);
     private Fruit? SelectedFruit => Document.Fruits.FirstOrDefault(f => f.Id == selection);
     private CurveTrack? SelectedTrack => Document.Tracks.FirstOrDefault(t => t.Id == selectedTrack || t.Id == selection);
     private Anchor? SelectedAnchor => SelectedTrack?.Nodes.FirstOrDefault(n => n.Id == selection);
@@ -114,7 +131,7 @@ public sealed partial class EditorView
 
     private void ClampView()
     {
-        if (drag == DragKind.Marquee) return;
+        if (drag is DragKind.Marquee or DragKind.Objects) return;
         if (AudioPlaying || pinPlayhead) { FollowPlayhead(); return; }
         // Blank time before the start and after the end keeps the playback line fixed at both endpoints.
         double padding = plot.Height * playbackLineFromBottom / pixelsPerMs;
@@ -134,13 +151,14 @@ public sealed partial class EditorView
     private void RestoreArScale()
     {
         useArScale = true;
-        pixelsPerMs = CatchScrollTiming.PixelsPerMs(Document.ApproachRate, plot.Width);
+        pixelsPerMs = CatchScrollTiming.PixelsPerMs(Document.ApproachRate, Playfield.Width);
         FollowPlayhead();
         StatusMessage = L.Get("editor.status.arScale", Number(Document.ApproachRate), Number(CatchScrollTiming.PreemptMs(Document.ApproachRate)));
     }
 
     private void CycleTickRate()
     {
+        if (draftBanana != Guid.Empty) { StatusMessage = L.Get("editor.status.bananaNeedsEnd"); return; }
         if (draftTrack != Guid.Empty) { StatusMessage = L.Get("editor.status.finishBeforeTickRate"); return; }
         double[] rates = [1, 2, 3, 4, 6, 8];
         int index = Array.IndexOf(rates, Document.SliderTickRate);
@@ -176,6 +194,12 @@ public sealed partial class EditorView
 
     private void ChangeTool(Tool next)
     {
+        if (draftBanana != Guid.Empty)
+        {
+            history.Cancel();
+            draftBanana = Guid.Empty;
+            Select(Guid.Empty);
+        }
         if (draftTrack != Guid.Empty && next == Tool.Slider) return;
         if (draftTrack != Guid.Empty) FinishCurve();
         if (draftTrack != Guid.Empty) return;
@@ -193,13 +217,14 @@ public sealed partial class EditorView
         {
             Tool.Fruit => L.Get("editor.help.fruit"),
             Tool.Slider => SelectedTrack is null ? L.Get("editor.help.slider") : L.Get("editor.help.anchors"),
+            Tool.Banana => L.Get("editor.help.banana"),
             _ => L.Get("editor.help.select")
         };
     }
 
     private void Undo()
     {
-        if (draftTrack != Guid.Empty || drag is DragKind.Fruit or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.Marquee)
+        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.Marquee)
         { CancelInteraction(); return; }
         CancelInteraction();
         history.Undo();
@@ -209,7 +234,7 @@ public sealed partial class EditorView
 
     private void Redo()
     {
-        if (draftTrack != Guid.Empty || drag is DragKind.Fruit or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.Marquee)
+        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.Marquee)
         { CancelInteraction(); return; }
         CancelInteraction();
         history.Redo();
@@ -259,6 +284,12 @@ public sealed partial class EditorView
 
     private void FinishForSelection()
     {
+        if (draftBanana != Guid.Empty)
+        {
+            history.Cancel();
+            draftBanana = Guid.Empty;
+            Select(Guid.Empty);
+        }
         if (draftTrack != Guid.Empty)
         {
             if (Document.Tracks.First(t => t.Id == draftTrack).Nodes.Count < 2) CancelInteraction();

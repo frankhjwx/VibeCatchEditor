@@ -59,6 +59,7 @@ internal static class SliderInteractionTests
         ui.Key('Y', ctrl: true); Near(3125, ui.Anchor(nodeId).TimeMs);
         ui.Key('Z', ctrl: true);
 
+        ui.ClickText(track.Name); ui.Key('B');
         ui.ClickMap(3000, 350);
         Check(ui.Canvas.Circles.Any(c => At(ui, c, 3250, 320) && Math.Abs(c.Radius - 4.5) < 0.001),
             "The unselected outgoing handle was not drawn.");

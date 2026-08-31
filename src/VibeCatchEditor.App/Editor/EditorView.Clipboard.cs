@@ -8,7 +8,7 @@ public sealed partial class EditorView
 {
     private MapDocument? objectClipboard;
 
-    private bool ClipboardInteractionReady => draftTrack == Guid.Empty && drag == DragKind.None && editField < 0;
+    private bool ClipboardInteractionReady => draftTrack == Guid.Empty && draftBanana == Guid.Empty && drag == DragKind.None && editField < 0;
 
     public bool CanCopySelection
     {

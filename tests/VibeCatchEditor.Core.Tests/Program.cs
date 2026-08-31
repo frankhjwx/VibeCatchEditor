@@ -115,6 +115,8 @@ static void SnapGrid()
     Near(37.25 + 500.0 / 3, BeatGrid.Snap(210, 37.25, 500, 6));
     double indexed = 37.25 + 1_000_000 * (500.0 / 6);
     Near(indexed, BeatGrid.Snap(indexed + 20, 37.25, 500, 6));
+    foreach (int divisor in new[] { 5, 7, 8, 9, 12, 16 })
+        Near(500.0 / divisor * 3, BeatGrid.Snap(500.0 / divisor * 3 + 1, 0, 500, divisor));
 }
 
 static void InvalidNumbers()

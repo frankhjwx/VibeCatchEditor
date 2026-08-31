@@ -24,10 +24,15 @@ internal static class MultiSelectionTests
         ui.Key('V'); Anchors(ui);
         ui.DownMap(2000, 220); ui.MoveMap(2125, 240); ui.UpMap(2125, 240);
         Objects(ui, track.Id); Anchors(ui);
-        Check(baseline.ContentEquals(ui.View.Document), "Object mode dragged a slider control point.");
+        Near(1125, ui.View.Document.Tracks.Single().Nodes[0].TimeMs);
+        Near(200, ui.View.Document.Tracks.Single().Nodes[0].X);
+        ui.Key('Z', ctrl: true);
+        Check(baseline.ContentEquals(ui.View.Document), "Whole-slider drag did not undo atomically.");
 
-        ui.Key('B'); ui.ClickMap(6000, 450);
-        Check(ui.View.Document.Tracks.Count == 1, "Empty click in existing-slider edit mode started a second slider.");
+        ui.ClickText(track.Name); ui.Key('B'); ui.ClickMap(6000, 450);
+        Check(ui.View.ActiveTool == "Select" && ui.View.Document.Tracks.Count == 1,
+            "Empty click did not leave existing-slider edit mode.");
+        ui.ClickText(track.Name); ui.Key('B');
         ui.ClickText("新 Slider");
         ui.ClickMap(5500, 80); ui.ClickMap(6500, 160); ui.Key(13);
         Check(ui.View.Document.Tracks.Count == 2 && ui.View.Document.Tracks.Single(t => t.Id == track.Id).Nodes.Count == 5,

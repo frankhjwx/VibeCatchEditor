@@ -66,12 +66,11 @@ public static class OsuBeatmapWriter
         {
             if (shower.OriginalLine is not null)
             {
-                var original = new MapDocument();
-                OsuBeatmapReader.ParseObject(original, shower.OriginalLine, shower.SourceOrder);
-                if (original.BananaShowers.Count != 1) throw new InvalidDataException(L.Get("core.writer.bananaText"));
-                original.BananaShowers[0].Id = shower.Id;
-                if (!shower.ContentEquals(original.BananaShowers[0])) throw new InvalidDataException(L.Get("core.writer.bananaReadOnly"));
-                lines.Add((shower.TimeMs, shower.SourceOrder, shower.Id, shower.OriginalLine));
+                string[] values = shower.OriginalLine.Split(',');
+                if (values.Length < 6) throw new InvalidDataException(L.Get("core.writer.bananaText"));
+                if (OsuBeatmapReader.Number(values[2]) != shower.TimeMs) values[2] = Time(shower.TimeMs);
+                if (OsuBeatmapReader.Number(values[5]) != shower.EndTimeMs) values[5] = Time(shower.EndTimeMs);
+                lines.Add((shower.TimeMs, shower.SourceOrder, shower.Id, string.Join(',', values)));
             }
             else lines.Add((shower.TimeMs, shower.SourceOrder, shower.Id, $"256,192,{Time(shower.TimeMs)},8,0,{Time(shower.EndTimeMs)},0:0:0:0:"));
         }

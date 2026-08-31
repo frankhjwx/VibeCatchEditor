@@ -34,7 +34,8 @@ internal static class ViewportFeedbackTests
     private static void AssertPinned(Ui ui)
     {
         var plot = ui.Plot;
-        var head = ui.Canvas.Lines.Single(l => l.Color == 0xF2C66D && l.X1 == plot.X && l.X2 == plot.Right && l.Y1 == l.Y2);
+        var canvasPlot = ui.View.CanvasPlotBounds;
+        var head = ui.Canvas.Lines.Single(l => l.Color == 0xF2C66D && l.X1 == canvasPlot.X && l.X2 == canvasPlot.Right && l.Y1 == l.Y2);
         if (Math.Abs(head.Y1 - (plot.Bottom - plot.Height * 0.25)) > 0.01)
             throw new Exception("Playback line moved away from the lower-quarter anchor.");
         var viewport = ui.Canvas.Outlines.Single(o => o.Color == 0x71849A).Bounds;

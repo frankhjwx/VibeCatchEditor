@@ -10,6 +10,11 @@ public sealed partial class EditorView
     {
         mouseX = x; mouseY = y;
         if (drag != DragKind.None) return;
+        if (button == 2 && tool == Tool.Banana && plot.Contains(x, y))
+        {
+            FinishBanana(x, y);
+            return;
+        }
         if (button == 2)
         {
             if (editField >= 0 && !CommitField()) return;
@@ -38,6 +43,13 @@ public sealed partial class EditorView
                 return;
             }
             menu = -1;
+            return;
+        }
+        if (snapSlider.Contains(x, y))
+        {
+            SetSnapDivisor(x);
+            drag = DragKind.SnapDivisor;
+            BeginPointerDrag(x, y);
             return;
         }
         for (int i = hits.Count - 1; i >= 0; i--)
@@ -76,16 +88,10 @@ public sealed partial class EditorView
             return;
         }
         if (!plot.Contains(x, y)) return;
-        if (tool == Tool.Slider && draftTrack == Guid.Empty && SelectedTrack is null && showTargets)
+        if (tool == Tool.Banana)
         {
-            foreach (var track in Document.Tracks.AsEnumerable().Reverse())
-                foreach (var node in track.Nodes)
-                    if (Near(Point(node), x, y, 7))
-                    {
-                        PickAnchor(track, node, ctrl);
-                        if (!ctrl && anchorSelection.Count == 1) BeginNodeDrag(track, node, DragKind.Anchor, x, y);
-                        return;
-                    }
+            StartBanana(x, y);
+            return;
         }
         if (tool == Tool.Slider && showTargets && SelectedTrack is { } selected)
         {
@@ -105,27 +111,34 @@ public sealed partial class EditorView
                 { BeginNodeDrag(selected, node, DragKind.HandleOut, x, y); return; }
             }
         }
+        if (tool == Tool.Slider && draftTrack == Guid.Empty && SelectedTrack is { } editedTrack)
+        {
+            if (HitCatchObject(x, y) is null && HitTrackPath(x, y) == Guid.Empty)
+            {
+                BeginBox(x, y, ctrl, true);
+                return;
+            }
+            tool = Tool.Select;
+            SelectObjects([editedTrack.Id], editedTrack.Id);
+        }
         if (tool == Tool.Slider)
         {
-            if (SelectedTrack is not null && (draftTrack == Guid.Empty || ctrl)) BeginBox(x, y, ctrl, true);
-            else if (!ctrl) AddCurveAnchor(x, y);
+            if (!ctrl) AddCurveAnchor(x, y);
             return;
         }
         if (HitCatchObject(x, y) is { } hitObject)
         {
+            PickObject(hitObject.SourceId, ctrl);
+            if (ctrl) return;
             if (!hitObject.IsStandalone)
             {
-                PickObject(hitObject.SourceId, ctrl);
                 StatusMessage = L.Get("editor.status.parentSelected", hitObject.Kind == CatchObjectKind.Banana ? L.Get("editor.object.bananaShower") : L.Get("editor.object.sliderWithSpace"), Number(hitObject.TimeMs));
+                BeginObjectDrag(x, y);
                 return;
             }
             if (Document.Fruits.FirstOrDefault(f => f.Id == hitObject.SourceId) is { } fruit)
             {
-                PickObject(fruit.Id, ctrl);
-                if (ctrl || objectSelection.Count > 1) return;
-                history.Begin(L.Get("editor.command.moveFruit")); drag = DragKind.Fruit;
-                BeginPointerDrag(x, y);
-                dragOffset = Transform.ToMap(x, y) - new MapPoint(fruit.TimeMs, fruit.X);
+                BeginObjectDrag(x, y);
                 return;
             }
         }
@@ -143,7 +156,11 @@ public sealed partial class EditorView
                     {
                         var p = Screen(CurveMath.Evaluate(track, s, n / 64.0));
                         if (SegmentDistance(x, y, last.X, last.Y, p.X, p.Y) < 6)
-                        { PickObject(track.Id, ctrl); return; }
+                        {
+                            PickObject(track.Id, ctrl);
+                            if (!ctrl) BeginObjectDrag(x, y);
+                            return;
+                        }
                         last = p;
                     }
                 }
@@ -155,6 +172,7 @@ public sealed partial class EditorView
     {
         mouseX = x; mouseY = y;
         if (drag == DragKind.None) return;
+        if (drag == DragKind.SnapDivisor) { SetSnapDivisor(x); return; }
         if (drag == DragKind.Marquee) { MoveBox(x, y); return; }
         if (drag == DragKind.Pan)
         {
@@ -169,15 +187,11 @@ public sealed partial class EditorView
             if (MathF.Abs(x - dragStartX) < 2 && MathF.Abs(y - dragStartY) < 2) return;
             dragMoved = true;
         }
+        if (drag == DragKind.Objects) { MoveSelectedObjects(x, y); return; }
         var raw = Transform.ToMap(x, y) - dragOffset;
         double time = snap ? TimingMap.Snap(Document, raw.TimeMs, divisor) : raw.TimeMs;
         var p = new MapPoint(Math.Clamp(time, 0, Document.DurationMs), Math.Clamp(raw.X, 0, 512));
-        if (drag == DragKind.Fruit && SelectedFruit is { } fruit)
-        {
-            fruit.TimeMs = p.TimeMs; fruit.X = p.X;
-            StatusMessage = L.Get("editor.status.fruitPosition", Number(p.TimeMs), Number(p.X));
-        }
-        else if (SelectedTrack is { } track && SelectedAnchor is { } node)
+        if (SelectedTrack is { } track && SelectedAnchor is { } node)
         {
             if (drag == DragKind.Anchor)
             {
@@ -230,8 +244,44 @@ public sealed partial class EditorView
         if (drag == DragKind.None || button != (drag == DragKind.Pan ? 1 : 0)) return;
         PointerMove(x, y, false, false);
         if (drag == DragKind.Marquee) { FinishBox(x, y); return; }
-        if (draftTrack == Guid.Empty && drag is DragKind.Fruit or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut) history.Commit();
+        if (draftTrack == Guid.Empty && drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut) history.Commit();
+        if (drag == DragKind.Objects)
+        {
+            objectDragStart = null;
+            objectDragPrepared = false;
+            if (AudioPlaying || pinPlayhead) FollowPlayhead();
+        }
         drag = DragKind.None;
+    }
+
+    public void PointerDoubleClick(float x, float y, bool shift, bool ctrl)
+    {
+        if (drag != DragKind.None || buttonTargetIsUnavailable()) return;
+        Guid sourceId = Guid.Empty;
+        if (listBounds.Contains(x, y))
+        {
+            var row = rows.FirstOrDefault(row => row.Bounds.Contains(x, y));
+            sourceId = row.Track != Guid.Empty ? row.Track : row.Id;
+        }
+        if (sourceId == Guid.Empty && plot.Contains(x, y))
+        {
+            var hit = HitCatchObject(x, y);
+            if (hit is not null && !hit.IsStandalone) sourceId = hit.SourceId;
+            if (sourceId == Guid.Empty) sourceId = HitTrackPath(x, y);
+        }
+        if (sourceId == Guid.Empty) return;
+        if (Document.ImportedSliders.Any(slider => slider.Id == sourceId))
+        {
+            SelectObjects([sourceId], sourceId);
+            EditImportedSlider();
+            return;
+        }
+        if (Document.Tracks.FirstOrDefault(track => track.Id == sourceId) is not { } track) return;
+        tool = Tool.Slider;
+        SelectAnchors(track, []);
+        StatusMessage = L.Get("editor.help.anchors");
+
+        bool buttonTargetIsUnavailable() => editField >= 0 || draftTrack != Guid.Empty || draftBanana != Guid.Empty || menu >= 0 || contextItems.Count > 0;
     }
 
     public void Wheel(float x, float y, float delta, bool ctrl)
@@ -279,7 +329,7 @@ public sealed partial class EditorView
         if (virtualKey == 27)
         {
             if (contextItems.Count > 0) { contextItems.Clear(); return; }
-            if (drag != DragKind.None || draftTrack != Guid.Empty) CancelInteraction();
+            if (drag != DragKind.None || draftTrack != Guid.Empty || draftBanana != Guid.Empty) CancelInteraction();
             else { Select(Guid.Empty); menu = -1; }
             return;
         }
@@ -306,6 +356,7 @@ public sealed partial class EditorView
             case 86: ChangeTool(Tool.Select); break;
             case 70: ChangeTool(Tool.Fruit); break;
             case 66: ChangeTool(Tool.Slider); break;
+            case 78: ChangeTool(Tool.Banana); break;
             case 32: TogglePlayback(); break;
             case 36: viewStart = 0; SeekTo(0); break;
         }
@@ -323,14 +374,17 @@ public sealed partial class EditorView
     public void CancelInteraction()
     {
         if (drag == DragKind.Marquee) { CancelBox(); contextItems.Clear(); return; }
-        if (draftTrack != Guid.Empty || drag is DragKind.Fruit or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut)
+        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut)
         {
             history.Cancel();
-            if (draftTrack != Guid.Empty) Select(Guid.Empty);
+            if (draftTrack != Guid.Empty || draftBanana != Guid.Empty) Select(Guid.Empty);
             StatusMessage = L.Get("editor.status.editCancelled");
         }
         drag = DragKind.None;
+        objectDragStart = null;
+        objectDragPrepared = false;
         draftTrack = Guid.Empty;
+        draftBanana = Guid.Empty;
         editField = -1;
         fieldError = "";
         menu = -1;
@@ -366,6 +420,44 @@ public sealed partial class EditorView
         StatusMessage = L.Get("editor.help.drawingSlider");
     }
 
+    private void StartBanana(float x, float y)
+    {
+        if (draftBanana != Guid.Empty)
+        {
+            StatusMessage = L.Get("editor.status.bananaNeedsEnd");
+            return;
+        }
+        double time = MapAt(x, y, true).TimeMs;
+        history.Begin(L.Get("editor.command.drawBanana"));
+        var shower = new BananaShower { TimeMs = time, EndTimeMs = time };
+        Document.BananaShowers.Add(shower);
+        draftBanana = shower.Id;
+        SelectObjects([shower.Id], shower.Id);
+        StatusMessage = L.Get("editor.status.bananaStarted", Number(time));
+    }
+
+    private void FinishBanana(float x, float y)
+    {
+        if (draftBanana == Guid.Empty)
+        {
+            StatusMessage = L.Get("editor.help.banana");
+            return;
+        }
+        var shower = Document.BananaShowers.First(item => item.Id == draftBanana);
+        double end = MapAt(x, y, true).TimeMs;
+        if (end <= shower.TimeMs)
+        {
+            StatusMessage = L.Get("editor.error.bananaEndAfterStart");
+            return;
+        }
+        shower.EndTimeMs = end;
+        Document.DurationMs = Math.Max(Document.DurationMs, end);
+        history.Commit();
+        draftBanana = Guid.Empty;
+        SelectObjects([shower.Id], shower.Id);
+        StatusMessage = L.Get("editor.status.bananaFinished", Number(shower.TimeMs), Number(end));
+    }
+
     private void BeginNodeDrag(CurveTrack track, Anchor node, DragKind kind, float x, float y)
     {
         Select(node.Id, track.Id);
@@ -384,6 +476,14 @@ public sealed partial class EditorView
         dragStartX = x;
         dragStartY = y;
         dragMoved = false;
+    }
+
+    private void SetSnapDivisor(float x)
+    {
+        float left = snapSlider.X + 7, right = snapSlider.Right - 31;
+        int index = (int)MathF.Round(Math.Clamp((x - left) / (right - left), 0, 1) * (SnapDivisors.Length - 1));
+        divisor = SnapDivisors[index];
+        snap = true;
     }
 
     private void NavigateTime(float x)

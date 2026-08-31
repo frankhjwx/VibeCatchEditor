@@ -27,7 +27,7 @@ var tests = new (string Name, Action Run)[]
     ("NaN inherited metadata does not cause a spurious same-time Catch SV conflict", InheritedNaN),
     ("Conflicting same-time imported slider blocks export", ConflictingSv),
     ("Quantized curve head cannot cross a BPM boundary", QuantizedBoundary),
-    ("Existing sliders and spinners cannot be silently mutated", ReadOnlyObjects),
+    ("Imported sliders require promotion while banana times preserve metadata", ReadOnlyObjects),
     ("Project JSON retains curves, IDs, paths, original sections and NaN timing", ProjectRoundTrip),
     ("Project resources are relative on disk and resolve on reload", ProjectResourcePaths),
     ("Project rejects missing or unknown schema, duplicate IDs and invalid numbers", InvalidProjects),
@@ -304,8 +304,13 @@ static void ReadOnlyObjects()
 {
     var d = OsuBeatmapReader.Read(Fixture()); d.ImportedSliders[0].PixelLength++;
     Throws(() => OsuBeatmapWriter.Serialize(d), "modified raw slider");
-    d = OsuBeatmapReader.Read(Fixture()); d.BananaShowers[0].EndTimeMs++;
-    Throws(() => OsuBeatmapWriter.Serialize(d), "modified raw spinner");
+    d = OsuBeatmapReader.Read(Fixture());
+    d.BananaShowers[0].TimeMs += 100; d.BananaShowers[0].EndTimeMs += 250;
+    var written = OsuBeatmapWriter.Serialize(d);
+    var shower = written.ReadBack.BananaShowers.Single();
+    Near(4600, shower.TimeMs); Near(5050, shower.EndTimeMs);
+    Check(written.Text.Contains("256,192,4600,12,0,5050,1:2:3:60:spinner.wav"),
+        "Editing banana times discarded original flags or sample metadata");
 }
 
 static void ProjectRoundTrip()

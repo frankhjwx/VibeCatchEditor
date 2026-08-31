@@ -107,7 +107,12 @@ public sealed partial class EditorView
         selectionBeforeBox = null;
         if (!moved && !boxAdds)
         {
-            if (boxAnchors && SelectedTrack is { } track) SelectAnchors(track, []);
+            if (boxAnchors)
+            {
+                tool = Tool.Select;
+                Select(Guid.Empty);
+                SeekTo(MapAt(x, y, false).TimeMs);
+            }
             else if (tool == Tool.Fruit)
             {
                 var point = MapAt(x, y, true);
@@ -143,7 +148,7 @@ public sealed partial class EditorView
     private Rect CatchHitBounds(ConvertedCatchObject item)
     {
         var point = Screen(new(item.TimeMs, item.X));
-        float scale = plot.Width / 512;
+        float scale = Playfield.Width / 512;
         var sprite = skin?.Bounds(SkinObjectKind(item.Kind), skinIndices.GetValueOrDefault(item.SourceId),
             point.X, point.Y, CatchSize.FruitDiameter(Document.CircleSize) * scale);
         float halfWidth = Math.Max(7, sprite?.Width / 2 ?? ObjectRadius(item.Kind) * scale);
@@ -163,7 +168,7 @@ public sealed partial class EditorView
 
     private void DeleteSelectedObjects()
     {
-        if (draftTrack != Guid.Empty) return;
+        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty) return;
         var ids = objectSelection.ToHashSet();
         if (ids.Count == 0 && SelectedTrack is { } track) ids.Add(track.Id);
         if (ids.Count == 0) return;

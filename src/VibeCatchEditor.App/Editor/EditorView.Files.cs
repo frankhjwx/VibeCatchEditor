@@ -51,6 +51,11 @@ public sealed partial class EditorView
 
     public bool PrepareFileOperation()
     {
+        if (draftBanana != Guid.Empty)
+        {
+            StatusMessage = L.Get("editor.status.bananaNeedsEnd");
+            return false;
+        }
         if (draftTrack != Guid.Empty) FinishCurve();
         if (draftTrack != Guid.Empty) return false;
         if (editField >= 0 && !CommitField()) return false;
@@ -79,7 +84,7 @@ public sealed partial class EditorView
 
     private void FollowPlayhead()
     {
-        if (drag == DragKind.Marquee) return;
+        if (drag is DragKind.Marquee or DragKind.Objects) return;
         pinPlayhead = true;
         viewStart = playhead - plot.Height * playbackLineFromBottom / pixelsPerMs;
     }

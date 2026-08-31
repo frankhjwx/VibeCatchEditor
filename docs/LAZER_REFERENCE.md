@@ -8,11 +8,11 @@
 
 本项目自行实现 stable `.osu` reader/writer，文件规则见 [stable 格式](STABLE_FORMAT.md)。本参考文档用于编辑、曲线、Catch 对象转换与音频功能。自有工程额外保存锚点和贝塞尔控制柄。
 
-## 4/6 分拍和水果放置
+## 分拍吸附和水果放置
 
 | 源码 | 已核对的职责 | 本项目使用方式 |
 | --- | --- | --- |
-| [BindableBeatDivisor](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game/Screens/Edit/BindableBeatDivisor.cs) | 预设 divisor 包含 4、6 等值 | 提供 1/4、1/6 快速切换，模型保存 divisor |
+| [BindableBeatDivisor](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game/Screens/Edit/BindableBeatDivisor.cs) | 预设 divisor 包含 4、6 等值 | 滑条提供 1/4、1/5、1/6、1/7、1/8、1/9、1/12、1/16，最右端为 1/16 |
 | [BeatDivisorPresetCollection](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game/Screens/Edit/Compose/Components/BeatDivisorPresetCollection.cs) | 常规组包含 1、2、4、8、16，三连音组包含 1、3、6、12 | 参考网格分组，不强制照搬 UI |
 | [EditorClock.SeekSnapped](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game/Screens/Edit/EditorClock.cs) | 以当前 timing offset 和拍长/divisor 求吸附位置，处理下一 timing 边界 | 参考 timing 边界；本项目的网格与对象编辑共用独立吸附服务 |
 | [FruitPlacementBlueprint](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game.Rulesets.Catch/Edit/Blueprints/FruitPlacementBlueprint.cs) | 放置时使用 composer 吸附结果并处理横向位置 | 参考 fruit 放置流程，按本项目坐标与命令系统实现 |
@@ -30,6 +30,12 @@
 | [JuiceStream](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game.Rulesets.Catch/Objects/JuiceStream.cs) | 从 slider event 生成 Fruit、Droplet、TinyDroplet，应用 timing/SV | 真实 stream 转换入口的参考，不把均匀曲线点替代生成对象 |
 
 lazer 提供这些组成部分；用户需要的“时间—X 贝塞尔创作 + 自有工程 + 精确结果检查”仍需组合和适配。该 Catch `JuiceStreamPath` 的权威表示是折线，不能直接声称它已经保存本项目需要的贝塞尔控制柄。
+
+## 香蕉雨
+
+| 源码 | 已核对的职责 | 本项目使用方式 |
+| --- | --- | --- |
+| [BananaShower](https://github.com/ppy/osu/blob/48c4800e3ae4ee752452cdff83bd3787ccf3105f/osu.Game.Rulesets.Catch/Objects/BananaShower.cs) | 父对象保存开始时间和持续时间，逐根香蕉由 nested hit objects 派生 | Banana 工具左键设置开始、右键设置结束；属性面板编辑时间范围，逐根 X 继续由完整谱面 RNG 生成 |
 
 ## 音乐、编辑时钟与拖动进度
 

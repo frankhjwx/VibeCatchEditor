@@ -26,7 +26,7 @@
 
 Difficulty 包含 ApproachRate、CircleSize、SliderMultiplier、SliderTickRate。演示默认时长 30000 ms、拍长 500 ms、offset=0、AR=8、CS=5、SliderMultiplier=1.4、SliderTickRate=1。MapDocument 的 BeatLengthMs / TimingOffsetMs 为无红点时的回退值；真实谱面保留全部 timing 点。
 
-时间权威值为 double 毫秒，1/6 拍不预先取整。TimingMap 查询当前红点 BPM / offset / Meter 和继承 SV，网格与吸附使用局部拍格及红点边界，绿点不重置相位。每条 slider 锁定起始 timing，沿途变化不修改其速度。切换吸附不修改已有对象或 SliderTickRate。
+时间权威值为 double 毫秒，分拍吸附不预先取整。TimingMap 查询当前红点 BPM / offset / Meter 和继承 SV，网格与吸附使用局部拍格及红点边界，绿点不重置相位。每条 slider 锁定起始 timing，沿途变化不修改其速度。切换吸附不修改已有对象或 SliderTickRate。
 
 EditorHistory 使用深复制实现事务、撤销和 dirty 比较，保留对象 ID、逐段类型、行程次数、Tiny 覆盖值、原始行和 timing。保存工程更新基线，不清除撤销重做。视图通过 ContentEquals 失效转换缓存，目前没有文档 revision 或异步转换。取消活动拖动或草稿恢复整个事务，后续字段按对象 ID 定位，避免写入旧快照。
 
@@ -46,7 +46,7 @@ EditorHistory 使用深复制实现事务、撤销和 dirty 比较，保留对�
 
 导入 slider 在点击“编辑 Slider”或右键插点前保留 L/B/P/C 几何控制点、长度、span 数与原始行。转编辑根据路径弧长和起始速度构建首 span 的时间—X 线性节点，可继续编辑控制点及方向柄；这不恢复原作者的控制柄。转换先验证对象数量、类型、顺序与时刻，报告 X 变化，再以一个事务替换原对象；失败不替换，撤销恢复原表示。右键导入轨迹插点在同一事务中先转编辑。
 
-轨迹保留原父 Id、SourceOrder、OriginalLine 和 SpanCount。节点只定义首 span，后续 repeat 共用并反向求值；`SpanCount=1` 为单程，结束时间由首 span 时长乘行程次数得出。`CompensateTinyDroplets=null` 继承会话开关，导入转编辑设为 false，保留原 Tiny 随机偏移。香蕉雨保存时间范围，不提供逐根位置编辑。
+轨迹保留原父 Id、SourceOrder、OriginalLine 和 SpanCount。节点只定义首 span，后续 repeat 共用并反向求值；`SpanCount=1` 为单程，结束时间由首 span 时长乘行程次数得出。`CompensateTinyDroplets=null` 继承会话开关，导入转编辑设为 false，保留原 Tiny 随机偏移。香蕉雨保存可编辑的开始/结束时间范围；逐根位置由完整谱面 RNG 派生，不提供逐根位置编辑。
 
 ## 派生转换
 
