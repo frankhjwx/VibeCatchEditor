@@ -1,5 +1,6 @@
 using L = VibeCatchEditor.Localization.Strings;
 using System.Threading.Channels;
+using NAudio.CoreAudioApi;
 using NAudio.Vorbis;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -56,7 +57,7 @@ public sealed class AudioTransport : IDisposable
     internal AudioTransport(float outputGain, Func<IWavePlayer>? createPlayer = null, TimeSpan? stopTimeout = null)
     {
         this.outputGain = outputGain;
-        this.createPlayer = createPlayer ?? (() => new WaveOutEvent { DesiredLatency = 80, NumberOfBuffers = 3, DeviceNumber = -1 });
+        this.createPlayer = createPlayer ?? (() => new WasapiOut(AudioClientShareMode.Shared, true, 80));
         this.stopTimeout = stopTimeout ?? TimeSpan.FromSeconds(3);
         worker = Task.Run(WorkAsync);
     }
@@ -153,11 +154,11 @@ public sealed class AudioTransport : IDisposable
                                 playIntent = true;
                                 if (output.Started)
                                 {
-                                    double resumePosition = DevicePosition();
-                                    bool ended = output.Stopped.Task.IsCompleted || output.Player.PlaybackState == PlaybackState.Stopped
-                                        || resumePosition >= duration - 0.5;
-                                    // A session is started once: EOF can race a state check and make WaveOutEvent.Play start another thread.
-                                    await ResetOutputAsync(ended ? 0 : resumePosition);
+                                    var playbackState = output.Player.PlaybackState;
+                                    if (!output.Stopped.Task.IsCompleted && playbackState == PlaybackState.Paused)
+                                        output.Player.Play();
+                                    else if (output.Stopped.Task.IsCompleted || playbackState == PlaybackState.Stopped)
+                                        await ResetOutputAsync(0);
                                 }
                                 else if (basePosition >= duration - 0.5)
                                     await ResetOutputAsync(0);
