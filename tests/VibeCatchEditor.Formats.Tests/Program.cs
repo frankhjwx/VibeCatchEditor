@@ -21,7 +21,7 @@ var tests = new (string Name, Action Run)[]
     ("Adjacent generated heads use one SV each and independent durations", SliderTimingTests.AdjacentGeneratedHeadsHaveOneSvEach),
     ("Shared generated SV restores only for the following imported slider", SliderTimingTests.SharedGeneratedSvRestoresOnlyForFollowingImportedSlider),
     ("A following generated head reestablishes original SV without an unused restore", SliderTimingTests.FollowingGeneratedHeadReestablishesOriginalSv),
-    ("Generated SV above 10 survives timing output and readback", SliderTimingTests.HighSvRoundTrip),
+    ("VCE sliders above stable's SV=10 limit are not exported", SliderTimingTests.HighSvExportIsRejected),
     ("Unsafe fractional or next-millisecond restoration is rejected atomically", SliderTimingTests.UnsafeRestorationWindowIsRejected),
     ("Fractional head restores original NaN state after the lookup window", SliderTimingTests.NaNAndFractionalHeadRestoreOriginalState),
     ("User project export durations pass an independent raw-field calculation", SliderTimingTests.UserProjectExportHasIndependentCorrectDurations),

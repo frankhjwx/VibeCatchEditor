@@ -46,7 +46,7 @@ EditorHistory 使用深复制实现事务、撤销和 dirty 比较，保留对�
 
 `.osu` 读入并保留 L/B/P/C 几何控制点、长度、span 数与原始行的对象称为 Legacy Slider。属性或右键“转换为 VCE Slider”根据路径弧长和起始速度构建首 span 的时间—X 线性节点；这不恢复原作者的控制柄。转换先验证对象数量、类型、顺序、时刻及 TinyDroplet 贴合，再以一个事务替换；失败不替换，撤销恢复 Legacy 表示。
 
-VCE Slider 保留原父 Id、SourceOrder、OriginalLine 和 SpanCount。节点只定义首 span，后续 repeat 共用并反向求值；`SpanCount=1` 为单程。新建及由 Legacy 转换的 VCE Slider 设置 `CompensateTinyDroplets=true`，表示贴合是强约束；`null/false` 仅用于旧工程兼容及底层对照。香蕉雨保存可编辑的开始/结束时间范围。
+VCE Slider 保留原父 Id、SourceOrder、OriginalLine 和 SpanCount。节点只定义首 span，后续 repeat 共用并反向求值；`SpanCount=1` 为单程。新建及由 Legacy 转换的 VCE Slider 设置 `CompensateTinyDroplets=true`，表示贴合是强约束；`null/false` 仅用于旧工程兼容及底层对照。香蕉雨保存可编辑的开始/结束时间范围；画布上的 X=0–512 矩形和上下手柄是该时间范围的编辑表示，不保存逐根 banana 位置。
 
 ## 派生转换
 
@@ -67,7 +67,7 @@ VCE Slider 保留原父 Id、SourceOrder、OriginalLine 和 SpanCount。节点�
 
 每条 VCE Slider 生成一个保留 SpanCount 的 `.osu` slider，按首 span 弧长和行程方向查询实际位置；F/D/T 内部对齐容差为 0.0001 场地单位，最终位置经过 float 运算。几何 Y 在边界折回不额外增加 repeat 或 tick。Legacy Slider 使用原长度裁剪/延长、重复 span 与反向求值。
 
-普通 Droplet 没有横向 RNG 偏移；TinyDroplet 根据实际 RNG 和事件路径进度反求偏移前 X。VCE Slider 的贴合受 `0..512`、共享 repeat 路径及水平速度约束，自动 SV 可在 0.1–1000 内提高；强约束目标不可达时该轨迹失败，不退回偏离曲线的结果。Legacy Slider 保留 osu 原始 TinyDroplet RNG 偏移。
+普通 Droplet 没有横向 RNG 偏移；TinyDroplet 根据实际 RNG 和事件路径进度反求偏移前 X。VCE Slider 的贴合受 `0..512`、共享 repeat 路径及水平速度约束，自动 SV 可在 stable 的 0.1–10 范围内提高；强约束目标不可达时该轨迹失败，不退回偏离曲线的结果。Legacy Slider 保留 osu 原始 TinyDroplet RNG 偏移。
 
 RNG 固定种子 1337，父对象按开始时间、SourceOrder 稳定排序；无导入顺序的新对象使用确定性集合顺序。一个 stream 的全部 nested RNG 处理完再进入下一个父对象，最后才展开按时间排序。Droplet 消耗旋转随机数，TinyDroplet 使用横向偏移；每根香蕉消耗位置及三次外观随机数，时间保留 float 累加规则。视口裁剪不改变输入。
 

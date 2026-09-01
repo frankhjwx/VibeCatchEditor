@@ -80,6 +80,53 @@ public sealed partial class EditorView
         return Guid.Empty;
     }
 
+    private Rect BananaRectangle(BananaShower shower)
+    {
+        float startY = Screen(new(shower.TimeMs, 256)).Y;
+        float endY = Screen(new(shower.EndTimeMs, 256)).Y;
+        return new(Playfield.X, Math.Min(startY, endY), Playfield.Width, Math.Max(1, Math.Abs(startY - endY)));
+    }
+
+    private BananaShower? HitBananaRectangle(float x, float y)
+        => Document.BananaShowers.AsEnumerable().Reverse()
+            .FirstOrDefault(shower => shower.Id != draftBanana && BananaRectangle(shower).Contains(x, y));
+
+    private bool TryBeginSelectedBananaHandle(float x, float y)
+    {
+        if (objectSelection.Count != 1 || SelectedBananaShower is not { } shower || shower.Id == draftBanana) return false;
+        float centerX = Playfield.X + Playfield.Width / 2;
+        float startY = Screen(new(shower.TimeMs, 256)).Y;
+        float endY = Screen(new(shower.EndTimeMs, 256)).Y;
+        DragKind kind;
+        double boundary;
+        if (MathF.Abs(x - centerX) <= 10 && MathF.Abs(y - endY) <= 10)
+        { kind = DragKind.BananaEnd; boundary = shower.EndTimeMs; }
+        else if (MathF.Abs(x - centerX) <= 10 && MathF.Abs(y - startY) <= 10)
+        { kind = DragKind.BananaStart; boundary = shower.TimeMs; }
+        else return false;
+
+        history.Begin(L.Get("editor.command.resizeBanana"));
+        objectDragStart = Document.DeepClone();
+        objectDragPrepared = true;
+        drag = kind;
+        BeginPointerDrag(x, y);
+        dragOffset = Transform.ToMap(x, y) - new MapPoint(boundary, 256);
+        return true;
+    }
+
+    private void MoveBananaBoundary(float x, float y)
+    {
+        if (objectDragStart is null || SelectedBananaShower is not { } target) return;
+        var source = objectDragStart.BananaShowers.Single(item => item.Id == target.Id);
+        double rawTime = (Transform.ToMap(x, y) - dragOffset).TimeMs;
+        double time = snap ? TimingMap.Snap(Document, rawTime, divisor) : rawTime;
+        if (drag == DragKind.BananaStart)
+            target.TimeMs = Math.Clamp(time, 0, Math.Max(0, source.EndTimeMs - 0.001));
+        else
+            target.EndTimeMs = Math.Clamp(time, Math.Min(Document.DurationMs, source.TimeMs + 0.001), Document.DurationMs);
+        StatusMessage = L.Get("editor.status.bananaRange", Number(target.TimeMs), Number(target.EndTimeMs));
+    }
+
     private void BeginObjectDrag(float x, float y)
     {
         if (objectSelection.Count == 0) return;

@@ -42,7 +42,7 @@ internal sealed record NestedCatchEvent(CatchObjectKind Kind, double TimeMs, dou
 internal static class LegacyCatchRules
 {
     internal const double MinimumSliderVelocityMultiplier = 0.1;
-    internal const double MaximumSliderVelocityMultiplier = 1000;
+    internal const double MaximumSliderVelocityMultiplier = 10;
     internal const double MaximumPathLength = 100_000;
     internal const int MaximumNestedObjects = 50_000;
 

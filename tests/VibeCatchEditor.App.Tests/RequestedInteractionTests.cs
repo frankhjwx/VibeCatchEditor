@@ -155,6 +155,63 @@ internal static class RequestedInteractionTests
             "Undoing an unfinished banana shower also undid the preceding committed object.");
     }
 
+    public static void BananaRectangleEditing()
+    {
+        var map = new MapDocument { DurationMs = 5000 };
+        map.BananaShowers.Add(new() { TimeMs = 1000, EndTimeMs = 2000 });
+        var overlap = Track("Overlap", 1400, 300, 1600, 350);
+        map.Tracks.Add(overlap);
+        var ui = Load(map);
+        var field = ui.View.PlayfieldBounds;
+        var range = ui.Canvas.Outlines.Single(outline => outline.Color == 0x8C7445);
+        Near(field.X, range.Bounds.X);
+        Near(field.Width, range.Bounds.Width);
+        ui.ClickMap(1500, 325);
+        Check(ui.View.SelectedObjectIds.Single() == overlap.Id,
+            "The banana rectangle intercepted a Slider drawn over its body.");
+
+        ui.Key('N');
+        ui.DownMap(1500, 400);
+        ui.MoveMap(1760, 400);
+        ui.UpMap(1760, 400);
+        var shower = ui.View.Document.BananaShowers.Single();
+        Near(1250, shower.TimeMs);
+        Near(2250, shower.EndTimeMs);
+        Check(ui.View.Document.BananaShowers.Count == 1,
+            "Dragging an existing banana range in the Banana tool created another shower.");
+
+        ui.Key('Z', ctrl: true);
+        shower = ui.View.Document.BananaShowers.Single();
+        Near(1000, shower.TimeMs); Near(2000, shower.EndTimeMs);
+        ui.ClickMap(1500, 400);
+        Check(ui.Canvas.Outlines.Any(outline => outline.Color == 0xF2C66D
+            && Math.Abs(outline.Bounds.X - field.X) < 0.001 && Math.Abs(outline.Bounds.Width - field.Width) < 0.001),
+            "The selected banana range did not use the visible selected outline.");
+
+        ui.DownMap(1000, 256);
+        ui.MoveMap(1125, 256);
+        ui.UpMap(1125, 256);
+        shower = ui.View.Document.BananaShowers.Single();
+        Near(1125, shower.TimeMs); Near(2000, shower.EndTimeMs);
+
+        ui.DownMap(2000, 256);
+        ui.MoveMap(2250, 256);
+        ui.UpMap(2250, 256);
+        shower = ui.View.Document.BananaShowers.Single();
+        Near(1125, shower.TimeMs); Near(2250, shower.EndTimeMs);
+        ui.Key('Z', ctrl: true);
+        shower = ui.View.Document.BananaShowers.Single();
+        Near(1125, shower.TimeMs); Near(2000, shower.EndTimeMs);
+
+        ui.ClickMap(1500, 400);
+        ui.DownMap(1125, 256);
+        ui.MoveMap(1250, 256);
+        ui.Key(27);
+        ui.UpMap(1250, 256);
+        shower = ui.View.Document.BananaShowers.Single();
+        Near(1125, shower.TimeMs); Near(2000, shower.EndTimeMs);
+    }
+
     private static CurveTrack Track(string name, double start, double startX, double end, double endX)
     {
         var track = new CurveTrack { Name = name, Kind = CurveKind.Linear, CompensateTinyDroplets = false };

@@ -10,7 +10,7 @@ public sealed partial class EditorView
     {
         mouseX = x; mouseY = y;
         if (drag != DragKind.None) return;
-        if (button == 2 && tool == Tool.Banana && plot.Contains(x, y))
+        if (button == 2 && draftBanana != Guid.Empty && tool == Tool.Banana && plot.Contains(x, y))
         {
             FinishBanana(x, y);
             return;
@@ -88,11 +88,7 @@ public sealed partial class EditorView
             return;
         }
         if (!plot.Contains(x, y)) return;
-        if (tool == Tool.Banana)
-        {
-            StartBanana(x, y);
-            return;
-        }
+        if (!ctrl && TryBeginSelectedBananaHandle(x, y)) return;
         if (tool != Tool.Slider && !ctrl && showTargets && objectSelection.Count == 1 && SelectedTrack is { } selectedObject)
         {
             foreach (var node in selectedObject.Nodes)
@@ -124,7 +120,7 @@ public sealed partial class EditorView
         }
         if (tool == Tool.Slider && draftTrack == Guid.Empty && SelectedTrack is { } editedTrack)
         {
-            if (HitCatchObject(x, y) is null && HitTrackPath(x, y) == Guid.Empty)
+            if (HitCatchObject(x, y) is null && HitTrackPath(x, y) == Guid.Empty && HitBananaRectangle(x, y) is null)
             {
                 BeginBox(x, y, ctrl, true);
                 return;
@@ -137,7 +133,9 @@ public sealed partial class EditorView
             if (!ctrl) AddCurveAnchor(x, y);
             return;
         }
-        if (HitCatchObject(x, y) is { } hitObject)
+        var hitObject = HitCatchObject(x, y);
+        bool sliderPathOverBanana = hitObject?.Kind == CatchObjectKind.Banana && showTargets && HitSliderLocation(x, y) is not null;
+        if (!sliderPathOverBanana && hitObject is not null)
         {
             PickObject(hitObject.SourceId, ctrl);
             if (ctrl) return;
@@ -175,6 +173,23 @@ public sealed partial class EditorView
                         last = p;
                     }
                 }
+            if (HitSliderLocation(x, y) is { } sliderLocation)
+            {
+                PickObject(sliderLocation.Id, ctrl);
+                if (!ctrl) BeginObjectDrag(x, y);
+                return;
+            }
+        }
+        if (HitBananaRectangle(x, y) is { } shower)
+        {
+            PickObject(shower.Id, ctrl);
+            if (!ctrl) BeginObjectDrag(x, y);
+            return;
+        }
+        if (tool == Tool.Banana)
+        {
+            StartBanana(x, y);
+            return;
         }
         BeginBox(x, y, ctrl, false);
     }
@@ -199,6 +214,7 @@ public sealed partial class EditorView
             dragMoved = true;
         }
         if (drag == DragKind.Objects) { MoveSelectedObjects(x, y); return; }
+        if (drag is DragKind.BananaStart or DragKind.BananaEnd) { MoveBananaBoundary(x, y); return; }
         var raw = Transform.ToMap(x, y) - dragOffset;
         double time = snap ? TimingMap.Snap(Document, raw.TimeMs, divisor) : raw.TimeMs;
         var p = new MapPoint(Math.Clamp(time, 0, Document.DurationMs), Math.Clamp(raw.X, 0, 512));
@@ -255,8 +271,8 @@ public sealed partial class EditorView
         if (drag == DragKind.None || button != (drag == DragKind.Pan ? 1 : 0)) return;
         PointerMove(x, y, false, false);
         if (drag == DragKind.Marquee) { FinishBox(x, y); return; }
-        if (draftTrack == Guid.Empty && drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut) history.Commit();
-        if (drag == DragKind.Objects)
+        if (draftTrack == Guid.Empty && drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.BananaStart or DragKind.BananaEnd) history.Commit();
+        if (drag is DragKind.Objects or DragKind.BananaStart or DragKind.BananaEnd)
         {
             objectDragStart = null;
             objectDragPrepared = false;
@@ -385,7 +401,7 @@ public sealed partial class EditorView
     public void CancelInteraction()
     {
         if (drag == DragKind.Marquee) { CancelBox(); contextItems.Clear(); return; }
-        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut)
+        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.BananaStart or DragKind.BananaEnd)
         {
             history.Cancel();
             if (draftTrack != Guid.Empty || draftBanana != Guid.Empty) Select(Guid.Empty);

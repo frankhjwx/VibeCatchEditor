@@ -177,14 +177,29 @@ public sealed partial class EditorView
         }
         c.Unclip();
         c.Clip(plot);
+        foreach (var shower in Document.BananaShowers.Where(item => item.Id != draftBanana))
+        {
+            var bounds = BananaRectangle(shower);
+            bool selected = objectSelection.Count == 1 && objectSelection.Contains(shower.Id);
+            c.Fill(bounds, selected ? 0x2B291Fu : 0x211F1Bu);
+            c.Stroke(bounds, selected ? Gold : 0x8C7445u, selected ? 2 : 1);
+            if (selected)
+            {
+                float centerX = playfield.X + playfield.Width / 2;
+                c.Circle(centerX, bounds.Y, 7, Background);
+                c.Circle(centerX, bounds.Y, 7, Gold, false, 2);
+                c.Circle(centerX, bounds.Bottom, 7, Background);
+                c.Circle(centerX, bounds.Bottom, 7, Gold, false, 2);
+            }
+        }
         if (draftBanana != Guid.Empty && Document.BananaShowers.FirstOrDefault(item => item.Id == draftBanana) is { } draft)
         {
             float startY = Screen(new(draft.TimeMs, 256)).Y;
             double cursorTime = plot.Contains(mouseX, mouseY) ? MapAt(mouseX, mouseY, true).TimeMs : draft.TimeMs;
             float cursorY = Screen(new(Math.Max(draft.TimeMs, cursorTime), 256)).Y;
-            c.Fill(new(plot.X, Math.Min(startY, cursorY), plot.Width, Math.Abs(startY - cursorY)), 0x29251B);
-            c.Line(plot.X, startY, plot.Right, startY, Gold, 2);
-            c.Line(plot.X, cursorY, plot.Right, cursorY, Gold, 1);
+            c.Fill(new(playfield.X, Math.Min(startY, cursorY), playfield.Width, Math.Abs(startY - cursorY)), 0x29251B);
+            c.Line(playfield.X, startY, playfield.Right, startY, Gold, 2);
+            c.Line(playfield.X, cursorY, playfield.Right, cursorY, Gold, 1);
         }
         foreach (var item in conversion!.Objects)
         {

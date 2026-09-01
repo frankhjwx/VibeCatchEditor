@@ -23,7 +23,7 @@ var tests = new (string Name, Action Run)[]
     ("Slider conversion follows legacy events and RNG golden sequence", ConversionTests.LegacyEventsAndRandom),
     ("Slider tick rate remains separate from editor snap and timing offset", ConversionTests.IndependentTickRate),
     ("Bezier tick coordinates come from generated slider arc length", ConversionTests.BezierTickAlignment),
-    ("VCE Slider generation raises SV above 10 up to the 1000 limit", ConversionTests.HighSliderVelocity),
+    ("VCE Slider generation enforces stable's SV=10 limit", ConversionTests.StableSliderVelocityLimit),
     ("Tiny RNG compensation changes geometry and preserves target X", ConversionTests.TinyCompensation),
     ("Tiny boundary constraints remain internal for usable compatibility output", ConversionTests.TinyBoundary),
     ("Numerical sampling limits preserve exact gameplay knots without user diagnostics", ConversionTests.NumericalSamplingLimit),

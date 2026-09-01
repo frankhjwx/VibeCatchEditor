@@ -89,16 +89,18 @@ internal static class ConversionTests
         True(slider.Path.Any(p => Math.Abs(p.X - 256) > 1), "Compensation changed displayed objects without changing the derived slider.");
     }
 
-    public static void HighSliderVelocity()
+    public static void StableSliderVelocityLimit()
     {
+        var imported = With();
+        imported.TimingPoints.Add(new TimingPoint { TimeMs = 0, BeatLengthMs = -1, Uninherited = false });
+        Near(10, TimingMap.At(imported, 0).SliderVelocityMultiplier);
+
         var track = new CurveTrack { Kind = CurveKind.Linear, Name = "High SV", CompensateTinyDroplets = true };
         track.Nodes.Add(new Anchor { TimeMs = 0, X = 0 });
         track.Nodes.Add(new Anchor { TimeMs = 20, X = 512 });
         var result = CatchStreamConverter.Convert(With(track));
-        Valid(result);
-        var slider = result.Sliders.Single();
-        True(slider.SliderVelocityMultiplier is > 10 and <= 1000, "VCE Slider did not raise SV beyond the old limit.");
-        True(slider.MaxTickError <= CatchStreamConverter.AlignmentTolerance, "High-SV VCE Slider missed its target path.");
+        True(!result.Success && result.Sliders.Count == 0,
+            "A VCE Slider above stable's SV=10 limit was generated.");
     }
 
     public static void TinyBoundary()

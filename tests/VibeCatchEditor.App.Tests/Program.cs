@@ -12,6 +12,7 @@ var tests = new (string Name, Action Run)[]
     ("A single Slider uses its start as the snap reference while moving", RequestedInteractionTests.SingleSliderSnap),
     ("The main canvas reserves CS0 padding while timing grid lines stay inside X=0..512", RequestedInteractionTests.PlayfieldPadding),
     ("Banana placement uses left-start right-end and exposes precise times", RequestedInteractionTests.BananaPlacement),
+    ("Banana showers expose an X=0..512 range with draggable body and time handles", RequestedInteractionTests.BananaRectangleEditing),
     ("Selecting an exact numeric time does not resnap or create undo", SelectOffGrid),
     ("A multi-update fruit drag is one undo and redo transaction", DragUndoRedo),
     ("Escape cancels a drag and a later mouse-up cannot commit it", EscapeDrag),

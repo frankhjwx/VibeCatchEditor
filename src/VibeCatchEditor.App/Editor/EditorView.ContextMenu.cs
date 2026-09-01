@@ -45,6 +45,8 @@ public sealed partial class EditorView
             { PickObject(hit.SourceId, false); found = true; }
             if (!anchors && !found && location is not null)
             { PickObject(location.Id, false); found = true; }
+            if (!anchors && !found && HitBananaRectangle(x, y) is { } shower)
+            { PickObject(shower.Id, false); found = true; }
         }
         if (!anchors && !found && objectSelection.Count <= 1) Select(Guid.Empty);
         if (anchorHit && anchorSelection.Count > 0 && SelectedAnchor is { } node && SelectedTrack is { } track)

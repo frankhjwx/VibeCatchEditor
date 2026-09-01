@@ -25,7 +25,7 @@ V/F 对象模式支持空白框选、Ctrl 点选增减与 Ctrl 框选叠加。sl
 
 选择工具按 sprite 实际尺寸命中 slider 的任意 Fruit / Droplet / TinyDroplet，并选中整条。`.osu` 读入的对象称为 Legacy Slider，在点击“转换为 VCE Slider”或首次编辑前保留原表示；VCE Slider 保存可编辑时间—X 节点，并保留父 ID、源顺序、repeat 和样本信息。转换可撤销；无法保证 TinyDroplet 贴合时原子失败并保留 Legacy Slider。
 
-预览显示真实 Fruit、Droplet、TinyDroplet 和香蕉。转换支持多 timing、继承 SV、Legacy L/B/P/C 路径与 repeat；VCE Slider 按行程次数生成 `.osu` slider，默认单程，并把 TinyDroplet 贴合作为强约束。Legacy Slider 保留 osu RNG 位置；转为 VCE Slider 时补偿路径，补偿受边界、SV 和 repeat 共享路径约束，不能满足时拒绝转换。VCE 自动生成 SV 的范围为 0.1–1000。RNG 使用完整谱面父对象顺序。
+预览显示真实 Fruit、Droplet、TinyDroplet 和香蕉。转换支持多 timing、继承 SV、Legacy L/B/P/C 路径与 repeat；VCE Slider 按行程次数生成 `.osu` slider，默认单程，并把 TinyDroplet 贴合作为强约束。Legacy Slider 保留 osu RNG 位置；转为 VCE Slider 时补偿路径，补偿受边界、SV 和 repeat 共享路径约束，不能满足时拒绝转换。VCE 自动生成 SV 的范围为 stable 可表达的 0.1–10。RNG 使用完整谱面父对象顺序。
 
 主画布与右侧预览共用 AR、CS 和皮肤绘制规则；香蕉静态使用正常 CS 尺寸的 0.6 倍，不实现随机缩放动画。主曲线绘制在对象上方，选中 100% 不透明，未选中 50%，可隐藏；预览调试曲线独立默认关闭，开启后位于对象后方。支持默认皮肤和选择 `.osk` 导入。
 
@@ -61,7 +61,7 @@ V/F 对象模式支持空白框选、Ctrl 点选增减与 Ctrl 框选叠加。sl
 | Tick | 由 timing、SliderTickRate、长度等决定；辅助锚点不自动生成 tick |
 | 编辑吸附 | 每拍 4/5/6/7/8/9/12/16 等分；不隐式改动 SliderTickRate 或已有对象 |
 | TinyDroplet | VCE Slider 尝试让实际对象贴合目标曲线；Legacy Slider 保留原 RNG；不可满足时保留 Legacy 表示或提示调整曲线 |
-| 香蕉雨 | Banana 工具和属性区可编辑开始/结束，生成真实 RNG 预览，不提供逐根 X 编辑 |
+| 香蕉雨 | Banana 工具创建横跨 X=0–512 的时间矩形；主体平移范围，上下手柄及属性区编辑起止时间；生成真实 RNG 预览，不提供逐根 X 编辑 |
 | SV 与可接性 | 高 SV 是生成参数，不能消除格式、数值范围或玩家运动约束 |
 | 皮肤 | 保留 PNG 尺寸、透明度和密度规则；当前不完整复刻游戏动画 |
 | 兼容性 | 先验证 stable / NM / 1×；未验证的数值边界和 mods 单独标明 |

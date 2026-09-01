@@ -84,7 +84,7 @@ public sealed partial class EditorView
 
     private void FollowPlayhead()
     {
-        if (drag is DragKind.Marquee or DragKind.Objects) return;
+        if (drag is DragKind.Marquee or DragKind.Objects or DragKind.BananaStart or DragKind.BananaEnd) return;
         pinPlayhead = true;
         viewStart = playhead - plot.Height * playbackLineFromBottom / pixelsPerMs;
     }

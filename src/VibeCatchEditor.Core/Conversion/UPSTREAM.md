@@ -62,7 +62,8 @@ time–X; repeat events remain in the span count. Converted VCE Sliders require 
 alignment. Shared repeat progress with conflicting tiny targets leaves the Legacy
 Slider unchanged.
 
-Timing queries preserve red-point BPM/offset/meter and green-point SV. Green
+Timing queries preserve red-point BPM/offset/meter and green-point SV, clamped
+to the stable Catch range 0.1–10. Green
 points do not restart the beat grid; a slider locks its beat length and SV at
 its start. At equal times green difficulty values override red ones, with the
 first red point and last green point selected according to the pinned decoder.
@@ -85,7 +86,7 @@ import order exists. The viewport does not participate in conversion. When an
 object cannot be generated, the result is
 marked incomplete and RNG only describes the successfully generated subset.
 
-Limits are explicit: generated path length at most 100000 units, at most 50000
+Limits are explicit: generated SV at most 10, generated path length at most 100000 units, at most 50000
 nested objects, 30000 authoring samples, 65536 generated path points, 10000
 imported control points, 9000 spans and 200000 imported path samples. Imported
 editing is bounded to 30000 anchors and 20 million simplification checks. Grid

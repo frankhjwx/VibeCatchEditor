@@ -88,7 +88,7 @@ public sealed partial class EditorView
     }
 
     private enum Tool { Select, Fruit, Slider, Banana }
-    private enum DragKind { None, Objects, Anchor, HandleIn, HandleOut, DraftHandle, Pan, Timeline, Marquee, SnapDivisor }
+    private enum DragKind { None, Objects, Anchor, HandleIn, HandleOut, DraftHandle, BananaStart, BananaEnd, Pan, Timeline, Marquee, SnapDivisor }
     private sealed record HitArea(Rect Bounds, Action Action, bool Enabled);
     private sealed record NumericField(Rect Bounds, string Label, double Value, Action<double> Apply);
     private float PlayfieldScale => plot.Width / (512 + PlayfieldPadding * 2);
@@ -131,7 +131,7 @@ public sealed partial class EditorView
 
     private void ClampView()
     {
-        if (drag is DragKind.Marquee or DragKind.Objects) return;
+        if (drag is DragKind.Marquee or DragKind.Objects or DragKind.BananaStart or DragKind.BananaEnd) return;
         if (AudioPlaying || pinPlayhead) { FollowPlayhead(); return; }
         // Blank time before the start and after the end keeps the playback line fixed at both endpoints.
         double padding = plot.Height * playbackLineFromBottom / pixelsPerMs;
@@ -224,7 +224,7 @@ public sealed partial class EditorView
 
     private void Undo()
     {
-        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.Marquee)
+        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.BananaStart or DragKind.BananaEnd or DragKind.Marquee)
         { CancelInteraction(); return; }
         CancelInteraction();
         history.Undo();
@@ -234,7 +234,7 @@ public sealed partial class EditorView
 
     private void Redo()
     {
-        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.Marquee)
+        if (draftTrack != Guid.Empty || draftBanana != Guid.Empty || drag is DragKind.Objects or DragKind.Anchor or DragKind.HandleIn or DragKind.HandleOut or DragKind.BananaStart or DragKind.BananaEnd or DragKind.Marquee)
         { CancelInteraction(); return; }
         CancelInteraction();
         history.Redo();
