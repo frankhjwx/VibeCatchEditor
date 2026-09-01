@@ -20,6 +20,7 @@ public sealed partial class EditorView
     private const double playbackLineFromBottom = 0.25;
     private bool pinPlayhead;
     public double TimelineDurationMs => Math.Max(Document.DurationMs, AudioDurationMs);
+    private double EditableDurationMs => Math.Min(int.MaxValue, AudioReady ? TimelineDurationMs : Document.DurationMs);
     public bool CompensateTinyDroplets => compensateTinyDroplets;
     public CatchConversionResult Conversion { get { EnsureConversion(); return conversion!; } }
     private ImportedSlider? SelectedImportedSlider => Document.ImportedSliders.FirstOrDefault(s => s.Id == selection);

@@ -26,6 +26,8 @@
 
 Difficulty 包含 ApproachRate、CircleSize、SliderMultiplier、SliderTickRate。演示默认时长 30000 ms、拍长 500 ms、offset=0、AR=8、CS=5、SliderMultiplier=1.4、SliderTickRate=1。MapDocument 的 BeatLengthMs / TimingOffsetMs 为无红点时的回退值；真实谱面保留全部 timing 点。
 
+导入 `.osu` 时，`DurationMs` 先由最后一个物件推导；关联音频解码完成后，如果实际音频更长，则完整音频范围可用于放置、数值编辑和拖动物件。加载与导航不修改文档；第一次把物件编辑到原范围之外时，在同一个用户编辑事务中扩展 `DurationMs`。
+
 时间权威值为 double 毫秒，分拍吸附不预先取整。TimingMap 查询当前红点 BPM / offset / Meter 和继承 SV，网格与吸附使用局部拍格及红点边界，绿点不重置相位。每条 slider 锁定起始 timing，沿途变化不修改其速度。切换吸附不修改已有对象或 SliderTickRate。
 
 EditorHistory 使用深复制实现事务、撤销和 dirty 比较，保留对象 ID、逐段类型、行程次数、Tiny 覆盖值、原始行和 timing。保存工程更新基线，不清除撤销重做。视图通过 ContentEquals 失效转换缓存，目前没有文档 revision 或异步转换。取消活动拖动或草稿恢复整个事务，后续字段按对象 ID 定位，避免写入旧快照。

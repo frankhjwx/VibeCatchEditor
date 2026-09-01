@@ -170,7 +170,7 @@ public sealed partial class EditorView
     {
         var p = Transform.ToMap(x, y);
         double time = useSnap && snap ? TimingMap.Snap(Document, p.TimeMs, divisor) : p.TimeMs;
-        return new(Math.Clamp(time, 0, Document.DurationMs), Math.Clamp(p.X, 0, 512));
+        return new(Math.Clamp(time, 0, EditableDurationMs), Math.Clamp(p.X, 0, 512));
     }
 
     private (float X, float Y) Screen(MapPoint p)
@@ -274,6 +274,7 @@ public sealed partial class EditorView
         if (draftTrack == Guid.Empty) return;
         var track = Document.Tracks.First(t => t.Id == draftTrack);
         if (track.Nodes.Count < 2) { StatusMessage = L.Get("editor.status.needTwoAnchors"); return; }
+        Document.DurationMs = Math.Max(Document.DurationMs, CurveMath.EndTimeMs(track));
         history.Commit();
         draftTrack = Guid.Empty;
         drag = DragKind.None;

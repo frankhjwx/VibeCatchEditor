@@ -321,8 +321,9 @@ public sealed partial class EditorView
             Badge(c, new(x, y, 108, 24), L.Get("ui.fruitBadge"), Gold); y += 39;
             Field(c, x, ref y, w, L.Get("ui.timeField"), fruit.TimeMs, value =>
             {
-                if (value < 0 || value > Document.DurationMs) throw new ArgumentException(L.Get("ui.timeRangeError"));
+                if (value < 0 || value > EditableDurationMs) throw new ArgumentException(L.Get("ui.timeRangeError"));
                 Document.Fruits.First(f => f.Id == fruit.Id).TimeMs = value;
+                Document.DurationMs = Math.Max(Document.DurationMs, value);
             });
             Field(c, x, ref y, w, L.Get("ui.xField"), fruit.X, value =>
             {
@@ -341,8 +342,9 @@ public sealed partial class EditorView
             {
                 Field(c, x, ref y, w, L.Get("ui.timeField"), node.TimeMs, value =>
                 {
-                    if (value < 0 || value > Document.DurationMs) throw new ArgumentException(L.Get("ui.timeRangeError"));
+                    if (value < 0 || value > EditableDurationMs) throw new ArgumentException(L.Get("ui.timeRangeError"));
                     MoveAnchor(track.Id, node.Id, value, null);
+                    Document.DurationMs = Math.Max(Document.DurationMs, CurveMath.EndTimeMs(track));
                 });
                 Field(c, x, ref y, w, L.Get("ui.xField"), node.X, value =>
                 {
@@ -411,8 +413,9 @@ public sealed partial class EditorView
                 });
                 Field(c, x, ref y, w, L.Get("ui.endTimeField"), shower.EndTimeMs, value =>
                 {
-                    if (value <= shower.TimeMs || value > Document.DurationMs) throw new ArgumentException(L.Get("ui.bananaTimeRange"));
+                    if (value <= shower.TimeMs || value > EditableDurationMs) throw new ArgumentException(L.Get("ui.bananaTimeRange"));
                     Document.BananaShowers.First(item => item.Id == shower.Id).EndTimeMs = value;
+                    Document.DurationMs = Math.Max(Document.DurationMs, value);
                 });
                 c.Text(L.Get("ui.bananaHint"), x, y, 12, Muted, w); y += 30;
                 Button(c, new(x, y, w, 29), L.Get("ui.deleteBanana"), DeleteSelection);

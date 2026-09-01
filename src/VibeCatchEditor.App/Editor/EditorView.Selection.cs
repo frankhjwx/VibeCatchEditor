@@ -117,7 +117,11 @@ public sealed partial class EditorView
             {
                 var point = MapAt(x, y, true);
                 var fruit = new Fruit { TimeMs = point.TimeMs, X = point.X };
-                if (Edit(L.Get("editor.command.addFruit"), () => Document.Fruits.Add(fruit))) Select(fruit.Id);
+                if (Edit(L.Get("editor.command.addFruit"), () =>
+                    {
+                        Document.Fruits.Add(fruit);
+                        Document.DurationMs = Math.Max(Document.DurationMs, fruit.TimeMs);
+                    })) Select(fruit.Id);
             }
             else { Select(Guid.Empty); SeekTo(MapAt(x, y, false).TimeMs); }
         }

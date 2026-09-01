@@ -123,7 +123,10 @@ public sealed partial class EditorView
         if (drag == DragKind.BananaStart)
             target.TimeMs = Math.Clamp(time, 0, Math.Max(0, source.EndTimeMs - 0.001));
         else
-            target.EndTimeMs = Math.Clamp(time, Math.Min(Document.DurationMs, source.TimeMs + 0.001), Document.DurationMs);
+        {
+            target.EndTimeMs = Math.Clamp(time, Math.Min(EditableDurationMs, source.TimeMs + 0.001), EditableDurationMs);
+            Document.DurationMs = Math.Max(Document.DurationMs, target.EndTimeMs);
+        }
         StatusMessage = L.Get("editor.status.bananaRange", Number(target.TimeMs), Number(target.EndTimeMs));
     }
 
@@ -191,7 +194,7 @@ public sealed partial class EditorView
 
         if (snap && double.IsFinite(minTime))
             deltaTime = TimingMap.Snap(Document, minTime + deltaTime, divisor) - minTime;
-        if (double.IsFinite(minTime)) deltaTime = Math.Clamp(deltaTime, -minTime, Document.DurationMs - maxTime);
+        if (double.IsFinite(minTime)) deltaTime = Math.Clamp(deltaTime, -minTime, EditableDurationMs - maxTime);
         else deltaTime = 0;
         if (double.IsFinite(minX)) deltaX = Math.Clamp(deltaX, -minX, 512 - maxX);
         else deltaX = 0;
@@ -218,6 +221,7 @@ public sealed partial class EditorView
             target.TimeMs = source.TimeMs + deltaTime;
             target.EndTimeMs = source.EndTimeMs + deltaTime;
         }
+        if (double.IsFinite(maxTime)) Document.DurationMs = Math.Max(Document.DurationMs, maxTime + deltaTime);
         StatusMessage = L.Get("editor.status.objectsMoved", objectSelection.Count, Number(deltaTime), Number(deltaX));
 
         void IncludeTime(double value) { minTime = Math.Min(minTime, value); maxTime = Math.Max(maxTime, value); }

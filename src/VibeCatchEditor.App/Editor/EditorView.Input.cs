@@ -217,7 +217,7 @@ public sealed partial class EditorView
         if (drag is DragKind.BananaStart or DragKind.BananaEnd) { MoveBananaBoundary(x, y); return; }
         var raw = Transform.ToMap(x, y) - dragOffset;
         double time = snap ? TimingMap.Snap(Document, raw.TimeMs, divisor) : raw.TimeMs;
-        var p = new MapPoint(Math.Clamp(time, 0, Document.DurationMs), Math.Clamp(raw.X, 0, 512));
+        var p = new MapPoint(Math.Clamp(time, 0, EditableDurationMs), Math.Clamp(raw.X, 0, 512));
         if (SelectedTrack is { } track && SelectedAnchor is { } node)
         {
             if (drag == DragKind.Anchor)
@@ -231,7 +231,11 @@ public sealed partial class EditorView
                     ClampMove(start, p, value => CurveMath.TryMoveAnchor(track, node.Id, value.TimeMs, value.X, out _));
                     StatusMessage = error;
                 }
-                else StatusMessage = L.Get("editor.status.anchorPosition", Number(node.TimeMs), Number(node.X));
+                else
+                {
+                    Document.DurationMs = Math.Max(Document.DurationMs, CurveMath.EndTimeMs(track));
+                    StatusMessage = L.Get("editor.status.anchorPosition", Number(node.TimeMs), Number(node.X));
+                }
             }
             else if (drag == DragKind.DraftHandle)
             {
@@ -445,6 +449,7 @@ public sealed partial class EditorView
             previous.OutgoingKind = previous.HandleOut == default ? CurveKind.Linear : CurveKind.Bezier;
         }
         track.Nodes.Add(node);
+        Document.DurationMs = Math.Max(Document.DurationMs, p.TimeMs);
         Select(node.Id, track.Id);
         drag = DragKind.DraftHandle;
         BeginPointerDrag(x, y);
@@ -463,6 +468,7 @@ public sealed partial class EditorView
         history.Begin(L.Get("editor.command.drawBanana"));
         var shower = new BananaShower { TimeMs = time, EndTimeMs = time };
         Document.BananaShowers.Add(shower);
+        Document.DurationMs = Math.Max(Document.DurationMs, time);
         draftBanana = shower.Id;
         SelectObjects([shower.Id], shower.Id);
         StatusMessage = L.Get("editor.status.bananaStarted", Number(time));

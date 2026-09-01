@@ -212,6 +212,35 @@ internal static class RequestedInteractionTests
         Near(1125, shower.TimeMs); Near(2000, shower.EndTimeMs);
     }
 
+    public static void AudioExtendsEditableDuration()
+    {
+        var map = new MapDocument { DurationMs = 217892 };
+        map.Fruits.Add(new() { TimeMs = 215892, X = 256 });
+        var ui = Load(map);
+
+        ui.View.UpdateTransport(233762, 421108.25, true, false, false, null, "audio.mp3");
+        ui.Paint();
+        Near(217892, ui.View.Document.DurationMs);
+        Check(!ui.View.IsDirty, "Loading the longer audio track dirtied the imported map.");
+
+        ui.Key('F');
+        ui.ClickMap(233750, 128);
+        Check(ui.View.Document.Fruits.Any(item => Math.Abs(item.TimeMs - 233750) < 0.001 && Math.Abs(item.X - 128) < 0.001),
+            "Fruit placement after the imported object's old duration was still clamped.");
+        Near(233750, ui.View.Document.DurationMs);
+
+        ui.Key('N');
+        ui.ClickMap(234000, 256);
+        var end = Screen(ui, 235000, 256);
+        ui.View.PointerDown(end.X, end.Y, 2, false, false);
+        ui.View.PointerUp(end.X, end.Y, 2);
+        ui.Paint();
+        var shower = ui.View.Document.BananaShowers.Single();
+        Near(234000, shower.TimeMs);
+        Near(235000, shower.EndTimeMs);
+        Near(235000, ui.View.Document.DurationMs);
+    }
+
     private static CurveTrack Track(string name, double start, double startX, double end, double endX)
     {
         var track = new CurveTrack { Name = name, Kind = CurveKind.Linear, CompensateTinyDroplets = false };
