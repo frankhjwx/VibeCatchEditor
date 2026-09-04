@@ -473,5 +473,14 @@
   "window.operationFailed": "操作失败，编辑数据仍保留在内存中。\n{0}\n\n详情见 artifacts/logs/editor.log。",
   "window.skinFailed": "加载皮肤失败：{0}",
   "window.startFailed": "无法启动编辑器：\n{0}\n\n详情：{1}",
-  "window.title": "VibeCatch Editor · {0}{1} · {2}"
+  "window.title": "VibeCatch Editor · {0}{1} · {2}",
+  "mac.save": "保存",
+  "mac.discard": "放弃更改",
+  "mac.cancel": "取消",
+  "mac.ok": "确定",
+  "mac.audioPlayFailed": "音频设备无法开始播放。",
+  "mac.audioFormat": "不支持的音频格式。",
+  "mac.audioLimit": "解码音频超过 512 MiB 上限。",
+  "files.skin": "打开皮肤",
+  "mac.renderStatus": "macOS  ·  {0:0}%  ·  {1}"
 }

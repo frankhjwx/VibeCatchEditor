@@ -10,6 +10,12 @@
 
 **M2 已接入真实 `.osz` / `.osu` 打开、`.catchproj` 工程保存重开、stable v14 / Mode=2 输出，以及音乐播放、暂停和拖动定位。** 支持对象与锚点多选、批量操作及中英文界面；启动提供可编辑的演示 map。本轮验证见 [多选与本地化验收记录](docs/MULTISELECT_LOCALIZATION_ACCEPTANCE.md)。
 
+## macOS 原生启动
+
+Mac 上双击 [Run-Editor-Mac.command](Run-Editor-Mac.command) 构建并打开原生编辑器。需要 .NET SDK 8.0.419 与 Xcode Command Line Tools；可用 `bash scripts/Install-Mac-SDK.sh` 安装项目内 SDK。
+
+执行 `bash scripts/Publish-Mac.sh` 可生成自包含的 `artifacts/macos/VibeCatchEditor.app`，之后直接双击应用。Mac 使用独立宿主并复用现有编辑器逻辑；Windows 原启动方式保持不变。平台边界、测试结果和未验证项目见 [macOS 说明](docs/MACOS.md)。
+
 ## 启动与试用
 
 Windows x64 上双击 [Run-Editor.cmd](Run-Editor.cmd) 构建并启动。构建 SDK 固定为 10.0.400，目标框架为 .NET 8；需要本机安装相应 SDK 和 .NET 8 运行时，当前输出不打包运行时。

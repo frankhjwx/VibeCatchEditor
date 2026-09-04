@@ -47,6 +47,8 @@ public sealed partial class EditorView
     public Action? RequestResetDemo { get; set; }
     public Action? RequestLoadSkin { get; set; }
     public bool IsDirty => history.IsDirty;
+    public bool IsEditingText => editField >= 0;
+    public string RendererStatusKey { get; set; } = "ui.renderStatus";
     public bool WantsCapture => drag != DragKind.None;
     public MapDocument Document => history.Document;
     public string? SkinName => skin?.Name;
