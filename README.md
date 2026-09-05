@@ -1,5 +1,7 @@
 # FruitsAtelier
 
+**简体中文** | [English](README.en.md)
+
 独立的 osu!catch 谱面编辑器，支持 Windows 和 macOS。使用时间—X 画布编辑水果与 FSlider，并随音乐预览 Catch 对象。
 
 项目正在开发中。
@@ -46,5 +48,3 @@ bash scripts/Publish-Mac.sh
 - [工程数据模型](docs/PROJECT_MODEL.md) · [Catch 绘制与转换](docs/CATCH_RENDERING.md) · [文件格式](docs/STABLE_FORMAT.md)
 - [本地化维护](docs/LOCALIZATION.md)
 - [第三方依赖与许可](THIRD_PARTY_NOTICES.md)
-
-项目原名 VibeCatchEditor，原 VCE Slider 更名为 FSlider；旧工程的兼容规则见[迁移说明](docs/RENAMING.md)。
