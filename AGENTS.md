@@ -1,26 +1,27 @@
-# FruitsAtelier 开发约定
+# FruitsAtelier Development Guidelines
 
-## 项目入口
+## Project Entry Points
 
-- [README](README.md)：运行方式与文档索引。
-- [技术架构](docs/ARCHITECTURE.md)：模块和平台边界。
-- 按修改范围阅读[编辑操作](docs/EDITOR_UI.md)、[数据模型](docs/PROJECT_MODEL.md)、[文件格式](docs/STABLE_FORMAT.md)或[本地化维护](docs/LOCALIZATION.md)。
+- [README](README.en.md): startup instructions and documentation index.
+- [Architecture](docs/ARCHITECTURE.md): modules and platform boundaries.
+- Depending on the change, read [Editing Controls](docs/EDITOR_UI.md), [Data Model](docs/PROJECT_MODEL.md), [File Format](docs/STABLE_FORMAT.md), or [Localization Maintenance](docs/LOCALIZATION.md).
 
-## 代码约定
+## Code Conventions
 
-- C# 12 / .NET 8，SDK 和 NuGet 版本由项目文件及锁文件固定。
-- Windows 使用 Win32 / DirectX / WASAPI；macOS 使用 Avalonia / AVAudioPlayer。修改共享编辑器代码时兼顾两端，Core 保持无平台依赖。
-- `.catchproj` 保存节点、控制柄及导入上下文；转换路径与预览对象由这些数据生成。修改持久化模型时维护旧工程兼容性。
-- 编辑坐标的 Y 是时间；导出 slider 的几何 Y 是路径坐标。节拍吸附与 SliderTickRate 分开处理。
-- 内容修改通过编辑事务进入撤销历史；选择、视口和语言设置不修改谱面内容。
-- GUI 文案及领域诊断从语言表读取，同步维护中英文键和占位符。已有对象名、文件内容不随语言切换改写。
-- 引入或改编外部代码时记录来源和固定版本，保留许可证，更新第三方声明。
+- Use C# 12 / .NET 8. SDK and NuGet versions are pinned in project configuration and lock files.
+- Windows uses Win32 / DirectX / WASAPI; macOS uses Avalonia / AVAudioPlayer. Account for both platforms when changing shared editor code, and keep Core free of platform dependencies.
+- `.catchproj` stores anchors, handles, and imported source context; converted paths and preview objects are derived from this data. Preserve compatibility with older projects when changing the persistence model.
+- The editor's Y coordinate represents time; an exported slider's geometric Y is a path coordinate. Keep beat snapping separate from SliderTickRate.
+- Apply content changes through editing transactions and undo history. Selection, viewport, and language settings must not modify beatmap content.
+- Read GUI text and domain diagnostics from localization tables. Maintain matching Chinese and English keys and placeholders. Switching languages must not rewrite existing object names or file contents.
+- When introducing or adapting external code, record its source and pinned revision, retain licenses, and update third-party notices.
 
-## 验证与文档
+## Validation and Documentation
 
-- 按[构建与测试](docs/TESTING.md)运行受影响的检查；窗口和输入修改需实际启动检查。
-- 自动音频测试输出静音 PCM，保留设备时钟和静音前的采样比较，不修改系统音量。
-- 构建产物、测试日志和截图放在 `artifacts/`，不提交到 Git。
-- 文档面向项目读者，描述当前行为、操作方式和维护所需的设计。会话中的 prompt 回应、工作汇报、临时验收包路径和一次性测试统计留在任务或 PR 中。
-- 同一规则只在相关文档维护一处，其余位置链接引用。行为变更时同步修正文档，移除过时结论。
-- 不自动启动子代理；仅在用户明确要求并行代理工作时使用。
+- Run the affected checks described in [Building and Testing](docs/TESTING.md). Launch the application to check window and input changes.
+- Automated audio tests output silent PCM while retaining the device clock and sample comparisons before muting. Do not change the system volume.
+- Store build artifacts, test logs, and screenshots in `artifacts/`; do not commit them to Git.
+- Write documentation for project readers: describe current behavior, usage, and design details needed for maintenance. Keep conversational prompt responses, progress reports, temporary acceptance-build paths, and one-off test counts in tasks or PRs.
+- Maintain each rule in its relevant document and link to it elsewhere. Update documentation when behavior changes and remove obsolete conclusions.
+- Keep AI-facing project instructions in English.
+- Do not start subagents automatically. Use them only when the user explicitly requests parallel agent work.
