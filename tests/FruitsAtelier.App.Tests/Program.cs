@@ -4,6 +4,8 @@ using FruitsAtelier.Core;
 
 var tests = new (string Name, Action Run)[]
 {
+    ("Canvas seeks follow the current beat grid and timing changes", CanvasSeekSnapTests.BeatGrid),
+    ("Free canvas seeking retains continuous time", CanvasSeekSnapTests.FreeMode),
     ("Timeline grabs retain the exact original time after round trips", TimelineDragTests.ReturnToStart),
     ("Timeline background clicks seek and drag limits preserve the origin", TimelineDragTests.ClickAndLimits),
     ("Fruit tools place quarters and sixths without moving existing objects", PlaceOnBothGrids),
@@ -422,6 +424,7 @@ static void UpwardPainting()
 static void UpwardClickTime()
 {
     var ui = new Ui();
+    ui.ClickText("自由");
     var plot = ui.Plot;
     ui.Click(plot.Right - 10, plot.Bottom - 100);
     double earlier = ui.View.PlayheadMs;
