@@ -11,7 +11,7 @@ The application uses the following NuGet packages, pinned by project files and `
 | NAudio.Vorbis | 1.5.0 | MIT |
 | NVorbis | 0.10.4 | MIT |
 
-Package metadata is available in the restored package `.nuspec` files under `artifacts/packages`. The application uses the installed .NET 8 runtime; it is not bundled in the build. Audio source references and limits are recorded in [Audio/REFERENCE.md](src/VibeCatchEditor.App/Audio/REFERENCE.md); licence texts in `Audio/Licenses` are copied to builds.
+Package metadata is available in the restored package `.nuspec` files under `artifacts/packages`. The application uses the installed .NET 8 runtime; it is not bundled in the build. Audio source references and limits are recorded in [Audio/REFERENCE.md](src/FruitsAtelier.App/Audio/REFERENCE.md); licence texts in `Audio/Licenses` are copied to builds.
 
 Source and notices: [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows), [Vortice.Mathematics](https://github.com/amerkoleci/Vortice.Mathematics), [SharpGenTools](https://github.com/SharpGenTools/SharpGenTools).
 
@@ -23,13 +23,13 @@ The AR/preempt and field geometry calculations refer to ppy/osu commit `48c4800e
 
 All osu! references below use that same commit of [ppy/osu](https://github.com/ppy/osu/tree/48c4800e3ae4ee752452cdff83bd3787ccf3105f):
 
-- `src/VibeCatchEditor.Core/Conversion`: slider events, legacy RNG and Catch stream conversion adapted from `SliderEventGenerator.cs`, `JuiceStream.cs`, `JuiceStreamPath.cs`, `SliderPath.cs`, `LegacyRulesetExtensions.cs`, `LegacyRandom.cs`, `CatchBeatmapProcessor.cs` and `CatchBeatmap.cs`. Full source paths and boundaries: [UPSTREAM.md](src/VibeCatchEditor.Core/Conversion/UPSTREAM.md); MIT text retained in `LICENCE.osu.txt`.
-- `src/VibeCatchEditor.Core/Gameplay`: Catch size and hyperdash rules from `osu.Game/Rulesets/Objects/Legacy/LegacyRulesetExtensions.cs`, `osu.Game.Rulesets.Catch/UI/Catcher.cs`, and `osu.Game.Rulesets.Catch/Beatmaps/CatchBeatmapProcessor.cs`; MIT text retained in `LICENSE.osu.txt`.
-- `src/VibeCatchEditor.App/Skinning`: texture selection, density, crop and scale rules from legacy Catch skin pieces, `Fruit.cs`, `DrawableTinyDroplet.cs`, `LegacySkin.cs` and `LegacySkinExtensions.cs`. Full source paths: [REFERENCE.md](src/VibeCatchEditor.App/Skinning/REFERENCE.md).
+- `src/FruitsAtelier.Core/Conversion`: slider events, legacy RNG and Catch stream conversion adapted from `SliderEventGenerator.cs`, `JuiceStream.cs`, `JuiceStreamPath.cs`, `SliderPath.cs`, `LegacyRulesetExtensions.cs`, `LegacyRandom.cs`, `CatchBeatmapProcessor.cs` and `CatchBeatmap.cs`. Full source paths and boundaries: [UPSTREAM.md](src/FruitsAtelier.Core/Conversion/UPSTREAM.md); MIT text retained in `LICENCE.osu.txt`.
+- `src/FruitsAtelier.Core/Gameplay`: Catch size and hyperdash rules from `osu.Game/Rulesets/Objects/Legacy/LegacyRulesetExtensions.cs`, `osu.Game.Rulesets.Catch/UI/Catcher.cs`, and `osu.Game.Rulesets.Catch/Beatmaps/CatchBeatmapProcessor.cs`; MIT text retained in `LICENSE.osu.txt`.
+- `src/FruitsAtelier.App/Skinning`: texture selection, density, crop and scale rules from legacy Catch skin pieces, `Fruit.cs`, `DrawableTinyDroplet.cs`, `LegacySkin.cs` and `LegacySkinExtensions.cs`. Full source paths: [REFERENCE.md](src/FruitsAtelier.App/Skinning/REFERENCE.md).
 
 The following MIT notice applies to the adapted osu! source portions, not to independently licensed skin artwork.
 
-Imported Bezier, perfect-circle and Catmull path approximation also adapts `osu.Framework/Utils/PathApproximator.cs` and `CircularArcProperties.cs` from [ppy/osu-framework commit e01524d1492885d8b00ac88b38e7963d76d7d454](https://github.com/ppy/osu-framework/tree/e01524d1492885d8b00ac88b38e7963d76d7d454). Its separate MIT notice is retained in `src/VibeCatchEditor.Core/Conversion/LICENCE.osu-framework.txt`. The framework runtime is not bundled.
+Imported Bezier, perfect-circle and Catmull path approximation also adapts `osu.Framework/Utils/PathApproximator.cs` and `CircularArcProperties.cs` from [ppy/osu-framework commit e01524d1492885d8b00ac88b38e7963d76d7d454](https://github.com/ppy/osu-framework/tree/e01524d1492885d8b00ac88b38e7963d76d7d454). Its separate MIT notice is retained in `src/FruitsAtelier.Core/Conversion/LICENCE.osu-framework.txt`. The framework runtime is not bundled.
 
 Copyright (c) 2025 ppy Pty Ltd <contact@ppy.sh>.
 
@@ -57,12 +57,12 @@ No default skin artwork is distributed in this repository. `assets/skins/default
 
 ## macOS host dependencies
 
-The separate `VibeCatchEditor.Mac` project uses Avalonia 11.3.7 (MIT;
+The separate `FruitsAtelier.Mac` project uses Avalonia 11.3.7 (MIT;
 Copyright 2013–2025 The AvaloniaUI Project), MicroCom.Runtime 0.11.0 (MIT;
 Copyright 2021 Nikita Tsukanov), SkiaSharp 2.88.9 and HarfBuzzSharp 8.3.1.1.
 The complete dependency versions and integrity hashes are in its `packages.lock.json`.
 License texts and Skia/HarfBuzz third-party notices are in
-`src/VibeCatchEditor.Mac/Licenses` and are copied into the application bundle.
+`src/FruitsAtelier.Mac/Licenses` and are copied into the application bundle.
 Avalonia source version: `0834dbbbb9252406b08f2e74e8f328cc5ba502ee`.
 No Avalonia source files were copied into the editor.
 

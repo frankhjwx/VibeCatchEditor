@@ -38,7 +38,7 @@ EditorHistory 使用深复制实现事务、撤销和 dirty 比较，保留对�
 
 界面语言和语言资源不写入 `.catchproj`。内建默认名在新建对象时通过资源取得；既有 Name、导入元数据和原始行均作为用户数据保留，切换语言不改名。语言变化会使转换诊断缓存失效，不改变转换几何或文档历史。
 
-## VCE Slider 与 Legacy Slider
+## FSlider 与 Legacy Slider
 
 轨迹位于 `(timeMs, X)` 平面，段类型为 `Nodes[i].OutgoingKind ?? track.Kind`。null 继承轨迹默认类型；同一轨迹可混合线性和三次贝塞尔。端点时间递增，贝塞尔控制点时间非递减；其时间求值先解 `time(u)`，不能用线性时间比例代替 u。锚点至少间隔 0.001 ms，控制点 X 限制到 0..512。
 
@@ -46,9 +46,9 @@ EditorHistory 使用深复制实现事务、撤销和 dirty 比较，保留对�
 
 批量删除锚点允许端点，保留未删除点的 ID、时刻和顺序。合并相邻段前清除将被激活的旧线性段隐藏柄，并根据剩余可用柄决定段类型；新端点移除不再使用的外向柄。剩余不足两个锚点时 App 删除整个父 slider，撤销恢复完整数据。
 
-`.osu` 读入并保留 L/B/P/C 几何控制点、长度、span 数与原始行的对象称为 Legacy Slider。属性或右键“转换为 VCE Slider”根据路径弧长和起始速度构建首 span 的时间—X 线性节点；这不恢复原作者的控制柄。转换先验证对象数量、类型、顺序、时刻及 TinyDroplet 贴合，再以一个事务替换；失败不替换，撤销恢复 Legacy 表示。
+`.osu` 读入并保留 L/B/P/C 几何控制点、长度、span 数与原始行的对象称为 Legacy Slider。属性或右键“转换为 FSlider”根据路径弧长和起始速度构建首 span 的时间—X 线性节点；这不恢复原作者的控制柄。转换先验证对象数量、类型、顺序、时刻及 TinyDroplet 贴合，再以一个事务替换；失败不替换，撤销恢复 Legacy 表示。
 
-VCE Slider 保留原父 Id、SourceOrder、OriginalLine 和 SpanCount。节点只定义首 span，后续 repeat 共用并反向求值；`SpanCount=1` 为单程。新建及由 Legacy 转换的 VCE Slider 设置 `CompensateTinyDroplets=true`，表示贴合是强约束；`null/false` 仅用于旧工程兼容及底层对照。香蕉雨保存可编辑的开始/结束时间范围；画布上的 X=0–512 矩形和上下手柄是该时间范围的编辑表示，不保存逐根 banana 位置。
+FSlider 保留原父 Id、SourceOrder、OriginalLine 和 SpanCount。节点只定义首 span，后续 repeat 共用并反向求值；`SpanCount=1` 为单程。新建及由 Legacy 转换的 FSlider 设置 `CompensateTinyDroplets=true`，表示贴合是强约束；`null/false` 仅用于旧工程兼容及底层对照。香蕉雨保存可编辑的开始/结束时间范围；画布上的 X=0–512 矩形和上下手柄是该时间范围的编辑表示，不保存逐根 banana 位置。
 
 ## 派生转换
 
@@ -67,13 +67,13 @@ VCE Slider 保留原父 Id、SourceOrder、OriginalLine 和 SpanCount。节点�
 
 `GeneratedSlider` 保存来源、IsImported、SpanCount、开始时间、总时长、速度、SV、TickDistance、单 span 长度与几何路径、补偿是否应用/成功及最大 tick/tiny 误差。`CatchConversionResult` 提供 Sliders、Objects、Diagnostics、Success 和最大误差。
 
-每条 VCE Slider 生成一个保留 SpanCount 的 `.osu` slider，按首 span 弧长和行程方向查询实际位置；F/D/T 内部对齐容差为 0.0001 场地单位，最终位置经过 float 运算。几何 Y 在边界折回不额外增加 repeat 或 tick。Legacy Slider 使用原长度裁剪/延长、重复 span 与反向求值。
+每条 FSlider 生成一个保留 SpanCount 的 `.osu` slider，按首 span 弧长和行程方向查询实际位置；F/D/T 内部对齐容差为 0.0001 场地单位，最终位置经过 float 运算。几何 Y 在边界折回不额外增加 repeat 或 tick。Legacy Slider 使用原长度裁剪/延长、重复 span 与反向求值。
 
-普通 Droplet 没有横向 RNG 偏移；TinyDroplet 根据实际 RNG 和事件路径进度反求偏移前 X。VCE Slider 的贴合受 `0..512`、共享 repeat 路径及水平速度约束，自动 SV 可在 stable 的 0.1–10 范围内提高；强约束目标不可达时该轨迹失败，不退回偏离曲线的结果。Legacy Slider 保留 osu 原始 TinyDroplet RNG 偏移。
+普通 Droplet 没有横向 RNG 偏移；TinyDroplet 根据实际 RNG 和事件路径进度反求偏移前 X。FSlider 的贴合受 `0..512`、共享 repeat 路径及水平速度约束，自动 SV 可在 stable 的 0.1–10 范围内提高；强约束目标不可达时该轨迹失败，不退回偏离曲线的结果。Legacy Slider 保留 osu 原始 TinyDroplet RNG 偏移。
 
 RNG 固定种子 1337，父对象按开始时间、SourceOrder 稳定排序；无导入顺序的新对象使用确定性集合顺序。一个 stream 的全部 nested RNG 处理完再进入下一个父对象，最后才展开按时间排序。Droplet 消耗旋转随机数，TinyDroplet 使用横向偏移；每根香蕉消耗位置及三次外观随机数，时间保留 float 累加规则。视口裁剪不改变输入。
 
-失败对象不生成结果，整体 Success=false，RNG 仅对应成功生成的子集。路径长度、事件数、导入控制点、repeat、采样和网格均有显式容量限制；具体数值、继承 NaN 的 Catch 处理与源码依据见[转换模块说明](../src/VibeCatchEditor.Core/Conversion/UPSTREAM.md)。
+失败对象不生成结果，整体 Success=false，RNG 仅对应成功生成的子集。路径长度、事件数、导入控制点、repeat、采样和网格均有显式容量限制；具体数值、继承 NaN 的 Catch 处理与源码依据见[转换模块说明](../src/FruitsAtelier.Core/Conversion/UPSTREAM.md)。
 
 Hyperdash 使用完整结果中的 Fruit / Droplet，跳过 TinyDroplet 和香蕉，保留方向和剩余移动量。标记属于起跳对象，CS 改动后重新计算。
 
@@ -81,7 +81,7 @@ Hyperdash 使用完整结果中的 Fruit / Droplet，跳过 TinyDroplet 和香�
 
 `.catchproj` 保存节点、柄、OutgoingKind、轨迹默认 Kind、SpanCount、OriginalLine、CompensateTinyDroplets、difficulty、完整 timing 及资源引用，不写入撤销栈、派生对象或 GPU 缓存。旧工程缺省 OutgoingKind=null、SpanCount=1、Tiny 覆盖=null。读取验证 schema、ID、模型边界和曲线约束，拒绝不支持的字段与版本；继承 NaN 使用 JSON 命名浮点表示。保存采用同目录临时文件后替换，资源路径相对工程目录保存，不复制音频本体。
 
-`.osu` 目前接受并输出 v14 / Mode=2，见[stable 文件规范](STABLE_FORMAT.md)。Legacy Slider 保留原始行；VCE Slider 按整数时间和路径坐标编码，保留 SpanCount，需要时插入继承 SV 并恢复。由 Legacy 转换的 VCE Slider 复用原类型/音效/sample 字段；行程次数改变时保留仍存在的边缘样本，新增边缘使用默认值并报告。无法与同时间对象兼容的 SV 冲突明确拒绝。输出回读比较完整对象序列、时间及 X；量化可能产生误差或序列变化。
+`.osu` 目前接受并输出 v14 / Mode=2，见[stable 文件规范](STABLE_FORMAT.md)。Legacy Slider 保留原始行；FSlider 按整数时间和路径坐标编码，保留 SpanCount，需要时插入继承 SV 并恢复。由 Legacy 转换的 FSlider 复用原类型/音效/sample 字段；行程次数改变时保留仍存在的边缘样本，新增边缘使用默认值并报告。无法与同时间对象兼容的 SV 冲突明确拒绝。输出回读比较完整对象序列、时间及 X；量化可能产生误差或序列变化。
 
 工程保存与 `.osu` 输出是独立操作，后者不能代替保存创作意图。视频和 storyboard 不加载，原始节文本保留不代表这些资源已打包。
 

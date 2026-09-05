@@ -1,0 +1,442 @@
+{
+  "SchemaVersion": 1,
+  "Document": {
+    "Name": "VibeCatchEditor compatibility fixture",
+    "DurationMs": 30000,
+    "BeatLengthMs": 500,
+    "TimingOffsetMs": 0,
+    "ApproachRate": 8,
+    "CircleSize": 5,
+    "SliderMultiplier": 1.4,
+    "SliderTickRate": 1,
+    "Fruits": [
+      {
+        "Id": "9eb76e77-396a-4436-933c-7d42709141f8",
+        "TimeMs": 250,
+        "X": 96,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "47866d9a-fc16-4834-bdfc-97e5a594f3b7",
+        "TimeMs": 500,
+        "X": 160,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "5559b6b4-c3d5-4e9c-9114-fe07c17a8b40",
+        "TimeMs": 750,
+        "X": 240,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "5f9dc6fc-d979-4aa0-b290-623fea693a18",
+        "TimeMs": 1000,
+        "X": 336,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "7eb63f0a-67d1-44cc-b2ce-f764f88ddc64",
+        "TimeMs": 1250,
+        "X": 416,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "cdc543c0-9166-4eeb-97ca-a4c83ec8ef5d",
+        "TimeMs": 1500,
+        "X": 344,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "41510912-b599-440c-b9f2-23bee7aa0a07",
+        "TimeMs": 1750,
+        "X": 256,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "e8bc92c6-5ac5-4f39-a49b-89c5626445bb",
+        "TimeMs": 2000,
+        "X": 168,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "a1e1701d-e4de-4f66-a9d6-ed653d9ffe79",
+        "TimeMs": 4750,
+        "X": 128,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "6c12d5ce-bd47-417a-ac3d-47214958c1a2",
+        "TimeMs": 5000,
+        "X": 256,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "66c5f956-8871-46ce-b884-7171b192d4d8",
+        "TimeMs": 5250,
+        "X": 384,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "7cc6d1b2-1c23-4fe1-8538-993a66b1bf81",
+        "TimeMs": 8250,
+        "X": 96,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "ce0f0a69-77c7-426a-8ffa-199dfd7dd2ef",
+        "TimeMs": 8500,
+        "X": 160,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "fae27a60-d660-4aac-be98-05fa415670b0",
+        "TimeMs": 8750,
+        "X": 240,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "ef3f58ac-3f44-48e4-ac33-42ad5147fb4c",
+        "TimeMs": 9000,
+        "X": 336,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "d8846bae-ce3e-4a44-86b0-ba9afccd4fe1",
+        "TimeMs": 9250,
+        "X": 416,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "014569c1-08df-43c6-92f5-90de52f373b7",
+        "TimeMs": 9500,
+        "X": 344,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "55cc8ca0-db05-4d29-9b32-6c7748aa4203",
+        "TimeMs": 9750,
+        "X": 256,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "9468e0eb-7db4-486e-ac1d-af819385bf6e",
+        "TimeMs": 10000,
+        "X": 168,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "98100803-43b6-403d-b50a-92fe8c97b7df",
+        "TimeMs": 16250,
+        "X": 96,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "2e5a3c62-9e93-4eac-b108-d29174a38f09",
+        "TimeMs": 16500,
+        "X": 160,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "9e4ec23f-38f5-4f58-b39a-36a2fc6fb47a",
+        "TimeMs": 16750,
+        "X": 240,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "83cf5981-2556-42e3-ba7c-db023ce7e1a4",
+        "TimeMs": 17000,
+        "X": 336,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "be4b8fc9-3d7e-41ba-9ab1-a689a0a0bec9",
+        "TimeMs": 17250,
+        "X": 416,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "6e598a4f-fdd1-46b8-95e0-a8f5af3e3cd8",
+        "TimeMs": 17500,
+        "X": 344,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "d0ef042b-a689-4e19-aa65-73f3abc6fa12",
+        "TimeMs": 17750,
+        "X": 256,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "30b6e572-afaa-49ae-b6a7-b20564cacd88",
+        "TimeMs": 18000,
+        "X": 168,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "fa815d00-adde-4d96-8cfb-e63b8097e059",
+        "TimeMs": 24250,
+        "X": 96,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "37b64c87-74f8-46f7-8e29-607a53997cd9",
+        "TimeMs": 24500,
+        "X": 160,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "9a3b7ae1-6d5e-4467-b2e6-6df98560fbca",
+        "TimeMs": 24750,
+        "X": 240,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "aa2f9b88-04ca-4e38-92e9-b3b881f181cb",
+        "TimeMs": 25000,
+        "X": 336,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "4f1984b9-62fc-46bb-a91f-4896d8e170dd",
+        "TimeMs": 25250,
+        "X": 416,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "e2bd0024-3f84-497a-89e4-c9d99d136e52",
+        "TimeMs": 25500,
+        "X": 344,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "5ffefaac-b3d1-410a-941a-2245819cda34",
+        "TimeMs": 25750,
+        "X": 256,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      },
+      {
+        "Id": "b30cfbb4-d294-47a2-b0d7-6d0d629b6f3a",
+        "TimeMs": 26000,
+        "X": 168,
+        "SourceOrder": 2147483647,
+        "OriginalLine": null
+      }
+    ],
+    "Tracks": [
+      {
+        "Id": "1a8b3e68-9397-46a0-a638-5e2aab543321",
+        "Name": "VCE Slider preserved user name",
+        "Kind": 1,
+        "SourceOrder": 2147483647,
+        "Nodes": [
+          {
+            "Id": "6c949516-198d-48b7-a674-4e4a057dab78",
+            "TimeMs": 1000,
+            "X": 120,
+            "HandleIn": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "HandleOut": {
+              "TimeMs": 350,
+              "X": 10
+            },
+            "OutgoingKind": null
+          },
+          {
+            "Id": "49dfc5cf-71f3-4377-bcf3-975a8b27833c",
+            "TimeMs": 2500,
+            "X": 392,
+            "HandleIn": {
+              "TimeMs": -500,
+              "X": -10
+            },
+            "HandleOut": {
+              "TimeMs": 350,
+              "X": 0
+            },
+            "OutgoingKind": null
+          },
+          {
+            "Id": "344c51dd-0ecc-4fcc-bfc2-86a8acc58754",
+            "TimeMs": 4000,
+            "X": 168,
+            "HandleIn": {
+              "TimeMs": -400,
+              "X": 0
+            },
+            "HandleOut": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "OutgoingKind": null
+          }
+        ],
+        "SpanCount": 1,
+        "OriginalLine": null,
+        "CompensateTinyDroplets": true
+      },
+      {
+        "Id": "69acb555-0aad-4d4a-b9bd-87a740719b47",
+        "Name": "02 · Linear zigzag",
+        "Kind": 0,
+        "SourceOrder": 2147483647,
+        "Nodes": [
+          {
+            "Id": "7d8dce56-f5cb-4aab-a926-241229a0ab92",
+            "TimeMs": 3000,
+            "X": 72,
+            "HandleIn": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "HandleOut": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "OutgoingKind": null
+          },
+          {
+            "Id": "f324d896-71f9-4c37-a01c-396fcab8f7f2",
+            "TimeMs": 3750,
+            "X": 296,
+            "HandleIn": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "HandleOut": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "OutgoingKind": null
+          },
+          {
+            "Id": "b0de1e3a-ce05-406d-a1a8-640644cf4520",
+            "TimeMs": 4500,
+            "X": 448,
+            "HandleIn": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "HandleOut": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "OutgoingKind": null
+          },
+          {
+            "Id": "f0d21979-2f3b-446b-8226-41290dd96f94",
+            "TimeMs": 5250,
+            "X": 256,
+            "HandleIn": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "HandleOut": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "OutgoingKind": null
+          }
+        ],
+        "SpanCount": 1,
+        "OriginalLine": null,
+        "CompensateTinyDroplets": true
+      },
+      {
+        "Id": "3e8d07d2-88b1-45a3-b4e1-64b2fe77d592",
+        "Name": "03 · Wide sweep",
+        "Kind": 1,
+        "SourceOrder": 2147483647,
+        "Nodes": [
+          {
+            "Id": "16dd5a9b-4fcc-41ca-b225-a31284faa142",
+            "TimeMs": 6000,
+            "X": 96,
+            "HandleIn": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "HandleOut": {
+              "TimeMs": 400,
+              "X": 64
+            },
+            "OutgoingKind": null
+          },
+          {
+            "Id": "13a65b35-573e-4f65-938b-c5c5a14889ee",
+            "TimeMs": 7500,
+            "X": 416,
+            "HandleIn": {
+              "TimeMs": -600,
+              "X": -16
+            },
+            "HandleOut": {
+              "TimeMs": 400,
+              "X": 0
+            },
+            "OutgoingKind": null
+          },
+          {
+            "Id": "d8a3c662-36f9-4246-9cfa-5c4980a5f825",
+            "TimeMs": 9000,
+            "X": 208,
+            "HandleIn": {
+              "TimeMs": -500,
+              "X": 120
+            },
+            "HandleOut": {
+              "TimeMs": 0,
+              "X": 0
+            },
+            "OutgoingKind": null
+          }
+        ],
+        "SpanCount": 1,
+        "OriginalLine": null,
+        "CompensateTinyDroplets": true
+      }
+    ],
+    "TimingPoints": [],
+    "ImportedSliders": [],
+    "BananaShowers": [],
+    "SourcePath": null,
+    "AudioPath": null,
+    "IsDemo": true,
+    "OriginalSections": []
+  }
+}

@@ -17,14 +17,14 @@ jobs:
         with:
           dotnet-version: 8.0.419
       # Use the Mac SDK pin solely for CI; the existing Windows SDK pin and launcher stay unchanged.
-      - run: dotnet build ../VibeCatchEditor.sln -c Release -p:RestoreLockedMode=true
+      - run: dotnet build ../FruitsAtelier.sln -c Release -p:RestoreLockedMode=true
       - name: Existing platform-independent and editor regression
         run: |
           foreach ($suite in @('Core', 'Gameplay', 'App', 'Skinning', 'SkinArchive')) {
-            dotnet run --no-build --project ../tests/VibeCatchEditor.$suite.Tests -c Release
+            dotnet run --no-build --project ../tests/FruitsAtelier.$suite.Tests -c Release
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
-          dotnet run --no-build --project ../tests/VibeCatchEditor.Formats.Tests -c Release -- --skip-external-fixtures
+          dotnet run --no-build --project ../tests/FruitsAtelier.Formats.Tests -c Release -- --skip-external-fixtures
   macos:
     runs-on: macos-14
     steps:

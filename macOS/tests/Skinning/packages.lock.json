@@ -195,16 +195,16 @@
           "System.IO.Pipelines": "8.0.0"
         }
       },
-      "vibecatcheditor.core": {
+      "fruitsatelier.core": {
         "type": "Project"
       },
-      "vibecatcheditor.mac": {
+      "fruitsatelier.mac": {
         "type": "Project",
         "dependencies": {
           "Avalonia.Desktop": "[11.3.7, )",
           "Avalonia.Themes.Fluent": "[11.3.7, )",
           "NVorbis": "[0.10.4, )",
-          "VibeCatchEditor.Core": "[1.0.0, )"
+          "FruitsAtelier.Core": "[1.0.0, )"
         }
       }
     }

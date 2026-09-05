@@ -1,8 +1,8 @@
-# VibeCatchEditor AI 开发约定
+# FruitsAtelier AI 开发约定
 
 ## 任务入口
 
-本目录是独立 Windows Catch 编辑器项目。开始工作先阅读：
+本目录是独立 Catch 编辑器项目，Windows 与 macOS 宿主共用编辑器和核心模型。开始工作先阅读：
 
 1. [产品定义](docs/PRODUCT.md)。
 2. [技术架构](docs/ARCHITECTURE.md)。
@@ -16,7 +16,7 @@
 
 - 当前优先交付 M1 编辑器界面，不自动扩展到完整客户端、插件系统、曲库或在线服务。
 - 首个可用版本包括 M1 + M2：真实 Catch beatmap 读写、4/6 分拍 fruit 编辑、手绘贝塞尔到 slider/fruit stream、真实音乐播放暂停及进度条拖动。不得将这些能力降为可选项或用演示替代。
-- 使用 C# / .NET 8，Win32 窗口与输入，自绘客户端。首版默认 DX11 + Direct2D/DirectWrite；DX12、Vulkan 是允许的后续选择，不要求同时实现。
+- 使用 C# / .NET 8。Windows 使用 Win32 窗口与输入、DX11 + Direct2D/DirectWrite 自绘；macOS 使用 Avalonia 原生窗口与 AVAudioPlayer 音频，复用编辑器源码。DX12、Vulkan 是允许的后续选择，不要求同时实现。
 - “开发 API”暂解释为桌面应用的 C# 技术栈，不据此创建 HTTP 服务。
 - 不引入 Unity、lazer 编辑器宿主或对运行中 osu! 进程的依赖。
 - 第三方绑定只解决系统 API 接入；主节点、交互和工程格式由本项目拥有。

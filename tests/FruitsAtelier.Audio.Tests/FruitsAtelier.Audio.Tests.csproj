@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/FruitsAtelier.Core/FruitsAtelier.Core.csproj" />
+    <None Update="Fixtures/quiet-tone.ogg" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="../../src/FruitsAtelier.App/Audio/*.cs" Link="Audio/%(Filename)%(Extension)" />
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
+    <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
+    <PackageReference Include="NVorbis" Version="0.10.4" />
+  </ItemGroup>
+</Project>

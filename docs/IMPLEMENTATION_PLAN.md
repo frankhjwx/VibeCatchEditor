@@ -1,20 +1,20 @@
 # 开发任务与验收
 
-M1 界面与 M2 真实文件、转换、音乐控制已接入。当前可打开谱面、编辑 fruit 与 VCE Slider、保留或转换 Legacy Slider、批量选择与操作对象/锚点，并切换中英文界面。最新音频停止恢复与导出 SV 验证见 [音频与导出修复验收](AUDIO_EXPORT_FIX_ACCEPTANCE.md)，多选与语言的桌面检查见 [多选与本地化验收记录](MULTISELECT_LOCALIZATION_ACCEPTANCE.md)；最新验收程序为 `artifacts/M2-AudioExportFix/VibeCatchEditor.App.exe`。
+M1 界面与 M2 真实文件、转换、音乐控制已接入。当前可打开谱面、编辑 fruit 与 FSlider、保留或转换 Legacy Slider、批量选择与操作对象/锚点，并切换中英文界面。最新音频停止恢复与导出 SV 验证见 [音频与导出修复验收](AUDIO_EXPORT_FIX_ACCEPTANCE.md)，多选与语言的桌面检查见 [多选与本地化验收记录](MULTISELECT_LOCALIZATION_ACCEPTANCE.md)；最新验收程序为 `artifacts/M2-AudioExportFix/FruitsAtelier.App.exe`。
 
 ## 当前实现范围
 
 | 模块 | 已实现 | 仍需区分的边界 |
 | --- | --- | --- |
 | 桌面与绘制 | Win32、DX11/D2D/DWrite、DPI 布局、resize、错误日志 | 跨屏 DPI 完整验收、设备自动恢复尚未完成 |
-| 编辑 | 4/5/6/7/8/9/12/16 分拍 fruit；VCE Slider 点击无柄点/拖出曲线柄、点高亮拖动、曲线/直线点转换、右键插点、保形分割、数值与撤销；Legacy 转 VCE | Legacy 表示保留至转换或首次编辑；无法严格贴合 TinyDroplet 时不替换 |
+| 编辑 | 4/5/6/7/8/9/12/16 分拍 fruit；FSlider 点击无柄点/拖出曲线柄、点高亮拖动、曲线/直线点转换、右键插点、保形分割、数值与撤销；Legacy 转 FSlider | Legacy 表示保留至转换或首次编辑；无法严格贴合 TinyDroplet 时不替换 |
 | 对象操作 | V/F 框选和 Ctrl 点选增减、Ctrl 框选叠加；批量删除/剪切/复制/粘贴，最早起点对齐播放头并保留相对时间、新 ID、一步撤销 | 内部剪贴板以完整父对象为单位；非法对象使整批操作回滚 |
 | 锚点操作 | B 编辑当前轨迹锚点，框选/Ctrl 点选、批量删除端点和内部点；“新 Slider”显式开始新曲线 | 不足两个剩余点时删整条；保留未删除点时刻，清理合并段的隐藏柄 |
 | 草稿与列表 | 列表选择完成至少两点草稿或取消单点草稿，再切回选择工具 | 未完成草稿不进入剪贴板 |
 | 选择 | 按 sprite 实际范围点击或框选任意 slider 子对象，父 ID 去重；取消框选恢复选择，播放时暂缓视口跟随 | 包含透明边距与最小容差，不逐像素检测 alpha；选择本身不改内容历史 |
 | 本地化 | 顶部中文/英文切换；自有 GUI 与诊断使用资源键，英文主表及同键语言 JSON 构建发现 | 已有用户数据和名称不翻译；系统/第三方异常不保证完整自译 |
 | Timing | 多 BPM / offset / Meter、继承 SV、局部网格与红点边界吸附 | 绿点不重置拍格；slider 锁定起始 timing |
-| 转换 | Legacy L/B/P/C、repeat、香蕉、整图 F/D/T / RNG；VCE 混合段生成、首 span 共用与 SpanCount 输出 | Legacy 转 VCE 保留父 ID / sample，Tiny 严格贴合，自动 SV 上限为 stable 的 10；失败明确诊断 |
+| 转换 | Legacy L/B/P/C、repeat、香蕉、整图 F/D/T / RNG；FSlider 混合段生成、首 span 共用与 SpanCount 输出 | Legacy 转 FSlider 保留父 ID / sample，Tiny 严格贴合，自动 SV 上限为 stable 的 10；失败明确诊断 |
 | 文件 | `.osz` / v14 Mode=2 `.osu` 打开，`.catchproj` 保存重开，`.osu` 另存与回读诊断 | 原包不修改；视频和 storyboard 不加载，不自动补齐其资源 |
 | 音频 | MP3 连续 PCM 缓存与采样帧 seek；OGG / WAV、真实播放/暂停、结束与错误状态 | 定位修复不等于硬件延迟校准或不同解码器 padding 一致 |
 | 显示 | AR / CS、hyperdash、主曲线与独立预览层、皮肤；香蕉静态 0.6 倍 | 不实现香蕉随机缩放动画；stable 客户端尚未对照 |
@@ -26,7 +26,7 @@ M1 界面与 M2 真实文件、转换、音乐控制已接入。当前可打开�
 1. 通过 `Ctrl + O` 打开 `.osz`、`.osu` 或 `.catchproj`，核对对象、timing 和关联音频。谱面包有多个难度时选择目标难度。
 2. 用 Space 播放/暂停，前后 seek 并检查真实声音与位置；核对播放线距底部 25%，起止留白，AR/resize 保持位置，暂停可平移。
 3. 按 1/4、1/5、1/6、1/7、1/8、1/9、1/12、1/16 放置、移动 fruit 并撤销重做；在 BPM 边界检查局部网格。切换吸附不改变 SliderTickRate。
-4. 点击 Legacy Slider 的任意子对象选择整条，右键“转换为 VCE Slider”；检查转换后 TinyDroplet 贴合、SV 不超过 stable 上限 10，以及失败时 Legacy 对象保持不变。
+4. 点击 Legacy Slider 的任意子对象选择整条，右键“转换为 FSlider”；检查转换后 TinyDroplet 贴合、SV 不超过 stable 上限 10，以及失败时 Legacy 对象保持不变。
 5. 未选轨迹时按 B，或从 B 属性区点击“新 Slider”，混合绘制无柄点与曲线柄；选中已有轨迹后按 B 编辑锚点，检查框选/Ctrl 点选、端点批量删除、不足两点删整条及撤销恢复。
 6. V/F 框选与 Ctrl 点选混合对象，确认 slider 多个子对象只选一次；批量复制、剪切、删除、播放头粘贴，检查相对时间、新 ID、整批撤销和取消框选恢复。播放中框选保持坐标稳定。
 7. 保存 `.catchproj` 后重开，确认节点、柄、逐段类型、SpanCount、timing 和原始样本信息。

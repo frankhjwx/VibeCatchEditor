@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "fruitsatelier.core": {
+        "type": "Project"
+      }
+    }
+  }
+}

@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization/*.json" LogicalName="VibeCatchEditor.Localization.%(Filename)%(Extension)" WithCulture="false" />
-  </ItemGroup>
-</Project>

@@ -1,4 +1,4 @@
-# VibeCatchEditor
+# FruitsAtelier
 
 # ⚠️ 仍在开发中，不提供工具使用教学
 
@@ -6,21 +6,23 @@
 
 **Work in progress. No tool usage tutorials or training are provided. Back up your beatmaps and projects before use.**
 
-独立 Windows osu!catch 编辑器，使用 C# / .NET 8、Win32 窗口和 DX11 + Direct2D/DirectWrite 自绘界面。主画布为“横向位置 X × 向上递增的时间”。
+独立 osu!catch 编辑器，支持 Windows 与 macOS，使用 C# / .NET 8。Windows 使用 Win32 / DirectX，macOS 使用 Avalonia 原生窗口；两端共享编辑器与核心模型。主画布为“横向位置 X × 向上递增的时间”。
 
 **M2 已接入真实 `.osz` / `.osu` 打开、`.catchproj` 工程保存重开、stable v14 / Mode=2 输出，以及音乐播放、暂停和拖动定位。** 支持对象与锚点多选、批量操作及中英文界面；启动提供可编辑的演示 map。本轮验证见 [多选与本地化验收记录](docs/MULTISELECT_LOCALIZATION_ACCEPTANCE.md)。
+
+项目原名 VibeCatchEditor；原 `VCE Slider` 现称为 **FSlider**。已有 `.catchproj` 工程继续兼容，用户保存的对象名称不会自动改写。改名范围见 [改名说明](docs/RENAMING.md)。
 
 ## macOS 原生启动
 
 Mac 上双击 [Run-Editor-Mac.command](Run-Editor-Mac.command) 构建并打开原生编辑器。需要 .NET SDK 8.0.419 与 Xcode Command Line Tools；可用 `bash scripts/Install-Mac-SDK.sh` 安装项目内 SDK。
 
-执行 `bash scripts/Publish-Mac.sh` 可生成自包含的 `artifacts/macos/VibeCatchEditor.app`，之后直接双击应用。Mac 使用独立宿主并复用现有编辑器逻辑；Windows 原启动方式保持不变。平台边界、测试结果和未验证项目见 [macOS 说明](docs/MACOS.md)。
+执行 `bash scripts/Publish-Mac.sh` 可生成自包含的 `artifacts/macos/FruitsAtelier.app`，之后直接双击应用。Mac 使用独立宿主并复用现有编辑器逻辑；Windows 原启动方式保持不变。平台边界、测试结果和未验证项目见 [macOS 说明](docs/MACOS.md)。
 
 ## 启动与试用
 
 Windows x64 上双击 [Run-Editor.cmd](Run-Editor.cmd) 构建并启动。构建 SDK 固定为 10.0.400，目标框架为 .NET 8；需要本机安装相应 SDK 和 .NET 8 运行时，当前输出不打包运行时。
 
-本地最新验收程序为 `artifacts/M2-AudioExportFix/VibeCatchEditor.App.exe`。`artifacts/` 内的程序、谱面、日志和截图不提交到 Git；文档中指向该目录的链接仅供本地验收使用，克隆仓库后请自行构建。音频停止超时恢复、导出 SV 冲突修复及修复谱面见 [音频与导出修复验收](docs/AUDIO_EXPORT_FIX_ACCEPTANCE.md)。
+本地最新验收程序为 `artifacts/M2-AudioExportFix/FruitsAtelier.App.exe`。`artifacts/` 内的程序、谱面、日志和截图不提交到 Git；文档中指向该目录的链接仅供本地验收使用，克隆仓库后请自行构建。音频停止超时恢复、导出 SV 冲突修复及修复谱面见 [音频与导出修复验收](docs/AUDIO_EXPORT_FIX_ACCEPTANCE.md)。
 
 启动后可看到 30 秒、120 BPM 的演示 map：
 
@@ -31,7 +33,7 @@ Windows x64 上双击 [Run-Editor.cmd](Run-Editor.cmd) 构建并启动。构建 
 - 右键轨迹可插入无柄控制点，右键控制点可转换为曲线/直线控制点；邻点有柄时相邻段仍可弯曲，插点不保证保形。需要保持形状时使用原有分割按钮。
 - 对象右键菜单与 `Ctrl + X / C / V` 支持整批剪切、复制、粘贴；最早起点对齐播放头，其余相对时间不变，父对象与节点均使用新 ID。`Delete` 在 V/F 下批量删除对象，在 B 下批量删除锚点（含端点）；不足两个锚点时删除整条 slider。每次批量修改可一步撤销。
 - 点击左侧对象列表会完成至少两点的草稿或取消单点草稿，并切回选择工具。
-- 在选择工具下点击 slider 的任意 Fruit / Droplet / TinyDroplet，按皮肤实际尺寸命中并选中整条。`.osu` 导入对象称为 Legacy Slider，可从属性或右键转换为 VCE Slider，再编辑节点、柄与行程次数；转换为一步撤销。
+- 在选择工具下点击 slider 的任意 Fruit / Droplet / TinyDroplet，按皮肤实际尺寸命中并选中整条。`.osu` 导入对象称为 Legacy Slider，可从属性或右键转换为 FSlider，再编辑节点、柄与行程次数；转换为一步撤销。
 - 滚轮浏览时间，Ctrl + 滚轮以鼠标时间为中心缩放；“还原 AR 比例”恢复 AR 下落比例并定位当前时间。右上 AR / CS 可编辑。
 - 主画布显示实际转换对象，曲线位于对象之上，选中不透明、未选中 50% 透明度，可整体隐藏。右侧预览的“调试曲线”独立控制，默认关闭。
 - `Tiny 贴合`控制派生补偿；`Tick ×…`修改全图 SliderTickRate，与编辑吸附独立。转换失败或补偿无法达到目标时显示诊断。
@@ -39,7 +41,7 @@ Windows x64 上双击 [Run-Editor.cmd](Run-Editor.cmd) 构建并启动。构建 
 - `Space` 播放/暂停，底部进度条点击或拖动 seek。播放线固定在主绘图区距底部 25% 处；播放、seek、AR 还原与 resize 保持该位置，起止允许留白，暂停时可手动平移。底部播放头与视口框连续移动。
 - `Ctrl + S` 保存 `.catchproj`，`Ctrl + Shift + S` 另存工程，`Ctrl + E` 输出新 `.osu` 并报告回读误差；输出谱面不能代替保存可编辑工程。
 - 顶部语言按钮切换中文与英文；界面和应用自有诊断使用资源键。用户文件、谱面标题、已存在的对象名称不自动翻译，也不因切换语言而变脏。
-- Legacy Slider 保留 L/B/P/C 原表示与 osu Tiny RNG。转换后的 VCE Slider 保留父 ID、源顺序、repeat 与样本信息；首个 span 的节点由后续行程共享，并要求实际对象贴合目标曲线。
+- Legacy Slider 保留 L/B/P/C 原表示与 osu Tiny RNG。转换后的 FSlider 保留父 ID、源顺序、repeat 与样本信息；首个 span 的节点由后续行程共享，并要求实际对象贴合目标曲线。
 
 当前转换支持多 timing、继承 SV、repeat、香蕉雨、整图确定性 RNG 和 hyperdash 判定。网格随红点 BPM / offset / 拍号变化，绿点不重置拍格；slider 锁定起始 timing。香蕉在两视图静态使用 0.6 倍尺寸，不实现随机缩放动画。视频和 storyboard 不加载，皮肤旋转、命中特效等动画简化。
 
