@@ -20,30 +20,30 @@
 
 ```text
 src/
-  VibeCatchEditor.App/
+  FruitsAtelier.App/
     Platform/      Win32、输入、DPI、文件对话框、受限谱面包与皮肤 ZIP 导入
     Audio/         串行 transport、设备时钟、MP3 分块 PCM 缓存与音频生命周期
     Rendering/     ICanvas、DX11/D2D/DWrite、WIC、图像缓存
     Editor/        自绘布局、命中、控制点交互、内部剪贴板、数值输入与转换缓存
     Skinning/      Catch PNG 映射、skin.ini、密度和裁剪
     Diagnostics/   日志、离屏 render-check、真实谱面 M2 检查
-  VibeCatchEditor.Core/
-    Model/         VCE Slider、Legacy Slider / 香蕉、timing、原始文件上下文
+  FruitsAtelier.Core/
+    Model/         FSlider、Legacy Slider / 香蕉、timing、原始文件上下文
     Formats/       自有 stable v14 reader/writer、工程 JSON、原子写入
     Editing/       文档事务、撤销、时间—X 变换
     Timing/        多 timing 查询、局部节拍吸附与网格、Catch AR 下落比例
     Curves/        时间单调的混合线性/贝塞尔段、求值、保形分割和约束
-    Conversion/    Legacy 转 VCE、两类 repeat、香蕉、RNG、Tiny 补偿与诊断
+    Conversion/    Legacy 转 FSlider、两类 repeat、香蕉、RNG、Tiny 补偿与诊断
     Gameplay/      CS 尺寸与完整对象序列的 hyperdash 判定
     Localization/  英文主表、语言表发现、格式化与键校验
 tests/
-  VibeCatchEditor.Core.Tests/
-  VibeCatchEditor.App.Tests/
-  VibeCatchEditor.Gameplay.Tests/
-  VibeCatchEditor.Skinning.Tests/
-  VibeCatchEditor.SkinArchive.Tests/
-  VibeCatchEditor.Formats.Tests/
-  VibeCatchEditor.Audio.Tests/
+  FruitsAtelier.Core.Tests/
+  FruitsAtelier.App.Tests/
+  FruitsAtelier.Gameplay.Tests/
+  FruitsAtelier.Skinning.Tests/
+  FruitsAtelier.SkinArchive.Tests/
+  FruitsAtelier.Formats.Tests/
+  FruitsAtelier.Audio.Tests/
 assets/skins/default.osk  可选本地皮肤，不纳入 Git
 artifacts/         包缓存、日志、截图、参考源码、谱面/皮肤缓存、工程与输出
 ```
@@ -62,17 +62,17 @@ V/F 使用完整父对象选择集合，B 使用当前编辑轨迹的锚点集�
 
 框选记录开始时的选择，取消时恢复；播放时暂缓视口跟随以保持框与对象坐标一致，结束后恢复跟随，音频时钟继续推进。锚点删除允许批量与端点，Core 验证合并后的段与柄，App 在不足两个剩余点时删除父 slider。内部剪贴板深复制一批完整父对象，粘贴将最早起点移到播放头并保留其余相对时间，重建全部父对象/节点 ID；剪切、删除、粘贴各自为一个事务，失败整批回滚，不使用系统剪贴板。
 
-选择工具以皮肤底图和 overlay 的实际目标范围命中，保留最小点击容差；没有纹理时用几何尺寸。命中 slider 的任意子对象后按 SourceId 选择整个父对象。属性或右键“转换为 VCE Slider”以单次事务调用 Legacy 转换：验证对象类型、顺序、时刻和 TinyDroplet 贴合后替换为时间—X 轨迹，保留父 ID、源顺序、repeat 与原始样本信息，失败不替换。新建和转换后的 VCE Slider 使用强制 Tiny 贴合，自动 SV 上限为 stable 可表达的 10。
+选择工具以皮肤底图和 overlay 的实际目标范围命中，保留最小点击容差；没有纹理时用几何尺寸。命中 slider 的任意子对象后按 SourceId 选择整个父对象。属性或右键“转换为 FSlider”以单次事务调用 Legacy 转换：验证对象类型、顺序、时刻和 TinyDroplet 贴合后替换为时间—X 轨迹，保留父 ID、源顺序、repeat 与原始样本信息，失败不替换。新建和转换后的 FSlider 使用强制 Tiny 贴合，自动 SV 上限为 stable 可表达的 10。
 
 窗口消息、编辑、转换和绘制在同一线程，音频命令由独立串行 worker 处理；默认输出使用共享模式 WASAPI，停止后等待播放线程退出再释放设备与缓冲区。播放时 `WM_PAINT` 读取 transport 状态，绘制后再次请求重绘，`Present(1)` 随显示器垂直刷新节奏呈现；没有固定 60 FPS 限制，也未据此保证实测帧率。暂停时由状态变化请求重绘，最小化及零尺寸不呈现。
 
-转换缓存比较文档快照内容和 Tiny 补偿开关，变化后重新计算完整文档，包含 Legacy Slider、VCE Slider、repeat 和香蕉。切换语言也失效缓存，以重新生成当前语言的诊断。转换输入不受可见时间裁剪影响；不完整的曲线草稿暂不生成。两视图共用转换结果，再以完整对象序列计算 hyperdash。转换仍同步执行，没有异步 revision 调度；复杂谱面的耗时隔离需按测量结果处理。
+转换缓存比较文档快照内容和 Tiny 补偿开关，变化后重新计算完整文档，包含 Legacy Slider、FSlider、repeat 和香蕉。切换语言也失效缓存，以重新生成当前语言的诊断。转换输入不受可见时间裁剪影响；不完整的曲线草稿暂不生成。两视图共用转换结果，再以完整对象序列计算 hyperdash。转换仍同步执行，没有异步 revision 调度；复杂谱面的耗时隔离需按测量结果处理。
 
 派生路径保留独立几何 Y，按弧长取位置得到实际对象。失败轨迹不输出伪造对象，结果标为不完整；此时 RNG 仅对应成功生成的子集。算法、容量边界与精度见[模型规范](PROJECT_MODEL.md)和[Catch 绘制与转换](CATCH_RENDERING.md)。
 
 ## 界面语言
 
-应用自有 GUI 文案与领域诊断统一通过 `VibeCatchEditor.Localization.Strings.Get` 读取。`Core/Localization/en.json` 为主表，`zh-CN.json` 为中文表，构建嵌入该目录的 `*.json`，运行时发现语言；顶部按钮切换语言。`Strings.Validate` 检查键集合和复合格式占位符，缺译回退英文，未知键显示键名。用户文件、已存在 Name 不自动翻译；系统或第三方异常不保证完整自译。新增词条与语言见[本地化维护](LOCALIZATION.md)。
+应用自有 GUI 文案与领域诊断统一通过 `FruitsAtelier.Localization.Strings.Get` 读取。`Core/Localization/en.json` 为主表，`zh-CN.json` 为中文表，构建嵌入该目录的 `*.json`，运行时发现语言；顶部按钮切换语言。`Strings.Validate` 检查键集合和复合格式占位符，缺译回退英文，未知键显示键名。用户文件、已存在 Name 不自动翻译；系统或第三方异常不保证完整自译。新增词条与语言见[本地化维护](LOCALIZATION.md)。
 
 ## 皮肤导入与资源
 

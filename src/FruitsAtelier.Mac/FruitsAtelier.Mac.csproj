@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../FruitsAtelier.Core/FruitsAtelier.Core.csproj" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.7" />
+    <PackageReference Include="NVorbis" Version="0.10.4" />
+    <Compile Include="../FruitsAtelier.App/Editor/*.cs" Link="Editor/%(Filename)%(Extension)" />
+    <Compile Include="../FruitsAtelier.App/Skinning/CatchSkin.cs" Link="Skinning/CatchSkin.cs" />
+    <Compile Include="../FruitsAtelier.App/Rendering/ICanvas.cs" Link="Rendering/ICanvas.cs" />
+    <Compile Include="../FruitsAtelier.App/Platform/BeatmapArchive.cs" Link="Platform/BeatmapArchive.cs" />
+    <Compile Include="../FruitsAtelier.App/Platform/BeatmapResources.cs" Link="Platform/BeatmapResources.cs" />
+    <Compile Include="../FruitsAtelier.App/Platform/SkinArchive.cs" Link="Platform/SkinArchive.cs" />
+    <Content Include="../../assets/skins/default.osk" Condition="Exists('../../assets/skins/default.osk')" Link="assets/skins/default.osk" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="Licenses/*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../../THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../FruitsAtelier.App/Audio/Licenses/NVorbis.txt" Link="Licenses/NVorbis.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../FruitsAtelier.Core/Conversion/LICENCE*.txt" Link="Licenses/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(IntermediateOutputPath)native/libFruitsAtelierAudio.dylib" Link="libFruitsAtelierAudio.dylib" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="BuildMacAudio" BeforeTargets="BeforeBuild" Condition="$([MSBuild]::IsOSPlatform('OSX'))" Inputs="Native/Audio.m" Outputs="$(IntermediateOutputPath)native/libFruitsAtelierAudio.dylib">
+    <MakeDir Directories="$(IntermediateOutputPath)native" />
+    <Exec Command="xcrun clang -dynamiclib -fobjc-arc -O2 -mmacosx-version-min=12.0 -framework Foundation -framework AVFoundation &quot;$(MSBuildProjectDirectory)/Native/Audio.m&quot; -o &quot;$(IntermediateOutputPath)native/libFruitsAtelierAudio.dylib&quot;" />
+  </Target>
+</Project>

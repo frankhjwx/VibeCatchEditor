@@ -19,13 +19,13 @@ M1 界面和 M2 文件、转换、音频已接入。可以打开 `.osz`、v14 / 
 
 V/F 对象模式支持空白框选、Ctrl 点选增减与 Ctrl 框选叠加。slider 任一子对象命中即选择整个父对象并去重；对象右键菜单与 Ctrl + X / C / V 支持批量删除、剪切、复制和粘贴。粘贴将最早起点对齐播放头，保持对象间相对时间，生成新父对象与节点 ID；每次批量修改形成一个撤销事务。
 
-选中 VCE Slider 后按 B、双击整条对象或单击其锚点可进入锚点编辑；框选和 Ctrl 点选只操作当前 VCE Slider 的锚点。当前锚点使用独立高对比色，曲线/直线转换只针对右键实际命中的锚点。可批量删除内部点与端点，保留剩余点的时刻；不足两个点时删除整条 VCE Slider。未选对象时 B 可直接绘制，编辑已有对象时用“新 Slider”按钮开始另一条。左侧列表选择会完成至少两点的草稿或取消单点草稿，并切回对象选择。
+选中 FSlider 后按 B、双击整条对象或单击其锚点可进入锚点编辑；框选和 Ctrl 点选只操作当前 FSlider 的锚点。当前锚点使用独立高对比色，曲线/直线转换只针对右键实际命中的锚点。可批量删除内部点与端点，保留剩余点的时刻；不足两个点时删除整条 FSlider。未选对象时 B 可直接绘制，编辑已有对象时用“新 Slider”按钮开始另一条。左侧列表选择会完成至少两点的草稿或取消单点草稿，并切回对象选择。
 
 界面支持顶部切换中文与英文，应用自有菜单、提示、错误和转换诊断从语言资源读取。英文为主表，新增同键语言 JSON 后由构建发现。语言是会话设置，不修改谱面文件、已有对象名称或 dirty 状态；系统和第三方异常内容不保证随应用语言完整翻译。维护方式见[本地化维护](LOCALIZATION.md)。
 
-选择工具按 sprite 实际尺寸命中 slider 的任意 Fruit / Droplet / TinyDroplet，并选中整条。`.osu` 读入的对象称为 Legacy Slider，在点击“转换为 VCE Slider”或首次编辑前保留原表示；VCE Slider 保存可编辑时间—X 节点，并保留父 ID、源顺序、repeat 和样本信息。转换可撤销；无法保证 TinyDroplet 贴合时原子失败并保留 Legacy Slider。
+选择工具按 sprite 实际尺寸命中 slider 的任意 Fruit / Droplet / TinyDroplet，并选中整条。`.osu` 读入的对象称为 Legacy Slider，在点击“转换为 FSlider”或首次编辑前保留原表示；FSlider 保存可编辑时间—X 节点，并保留父 ID、源顺序、repeat 和样本信息。转换可撤销；无法保证 TinyDroplet 贴合时原子失败并保留 Legacy Slider。
 
-预览显示真实 Fruit、Droplet、TinyDroplet 和香蕉。转换支持多 timing、继承 SV、Legacy L/B/P/C 路径与 repeat；VCE Slider 按行程次数生成 `.osu` slider，默认单程，并把 TinyDroplet 贴合作为强约束。Legacy Slider 保留 osu RNG 位置；转为 VCE Slider 时补偿路径，补偿受边界、SV 和 repeat 共享路径约束，不能满足时拒绝转换。VCE 自动生成 SV 的范围为 stable 可表达的 0.1–10。RNG 使用完整谱面父对象顺序。
+预览显示真实 Fruit、Droplet、TinyDroplet 和香蕉。转换支持多 timing、继承 SV、Legacy L/B/P/C 路径与 repeat；FSlider 按行程次数生成 `.osu` slider，默认单程，并把 TinyDroplet 贴合作为强约束。Legacy Slider 保留 osu RNG 位置；转为 FSlider 时补偿路径，补偿受边界、SV 和 repeat 共享路径约束，不能满足时拒绝转换。FSlider 自动生成 SV 的范围为 stable 可表达的 0.1–10。RNG 使用完整谱面父对象顺序。
 
 主画布与右侧预览共用 AR、CS 和皮肤绘制规则；香蕉静态使用正常 CS 尺寸的 0.6 倍，不实现随机缩放动画。主曲线绘制在对象上方，选中 100% 不透明，未选中 50%，可隐藏；预览调试曲线独立默认关闭，开启后位于对象后方。支持默认皮肤和选择 `.osk` 导入。
 
@@ -35,7 +35,7 @@ V/F 对象模式支持空白框选、Ctrl 点选增减与 Ctrl 框选叠加。sl
 
 1. 打开 Catch `.osu` 或自有工程，加载 timing、谱面设置、完整对象上下文及关联音频。
 2. 播放、暂停音乐并拖动进度条定位。
-3. 按 1/4、1/5、1/6、1/7、1/8、1/9、1/12 或 1/16 拍放置水果，绘制混合线性/贝塞尔 VCE Slider，或将选中的 Legacy Slider 转换为 VCE Slider。
+3. 按 1/4、1/5、1/6、1/7、1/8、1/9、1/12 或 1/16 拍放置水果，绘制混合线性/贝塞尔 FSlider，或将选中的 Legacy Slider 转换为 FSlider。
 4. 生成 slider 和实际 Catch stream，在完整谱面上下文中显示目标误差、RNG 及可接性提示。
 5. 保存工程保留创作信息；输出新 `.osu` 后回读，对照对象、timing 和未编辑内容。
 
@@ -46,7 +46,7 @@ V/F 对象模式支持空白框选、Ctrl 点选增减与 Ctrl 框选叠加。sl
 | 阶段 | 当前状态与完成条件 |
 | --- | --- |
 | M1 界面 | 已有独立窗口、演示 map、工具、列表、属性、时间导航和撤销；桌面操作证据见验收记录 |
-| M2 转换 | 已接入真实谱面、L/B/P/C、repeat、香蕉与整图 RNG；Legacy 转 VCE、混合段、补偿、hyperdash 和输出诊断可用 |
+| M2 转换 | 已接入真实谱面、L/B/P/C、repeat、香蕉与整图 RNG；Legacy 转 FSlider、混合段、补偿、hyperdash 和输出诊断可用 |
 | M2 文件 | `.osz` / `.osu` 打开、`.osu` 另存回读、`.catchproj` 保存重开已接入 |
 | M2 timing | 多 BPM / offset / 拍号、继承 SV、局部 4/5/6/7/8/9/12/16 网格已接入；slider 锁定开始时的 timing |
 | M2 音频 | 真实播放、暂停、seek、错误与结束状态；MP3 使用连续 PCM 的帧定位，硬件延迟与听感另行验证 |
@@ -60,7 +60,7 @@ V/F 对象模式支持空白框选、Ctrl 点选增减与 Ctrl 框选叠加。sl
 | 主节点与曲线 | 保留时间、X、控制柄、每段类型和轨迹身份；首 span 节点共享于 repeat，不将后续采样覆盖创作数据 |
 | Tick | 由 timing、SliderTickRate、长度等决定；辅助锚点不自动生成 tick |
 | 编辑吸附 | 每拍 4/5/6/7/8/9/12/16 等分；不隐式改动 SliderTickRate 或已有对象 |
-| TinyDroplet | VCE Slider 尝试让实际对象贴合目标曲线；Legacy Slider 保留原 RNG；不可满足时保留 Legacy 表示或提示调整曲线 |
+| TinyDroplet | FSlider 尝试让实际对象贴合目标曲线；Legacy Slider 保留原 RNG；不可满足时保留 Legacy 表示或提示调整曲线 |
 | 香蕉雨 | Banana 工具创建横跨 X=0–512 的时间矩形；主体平移范围，上下手柄及属性区编辑起止时间；生成真实 RNG 预览，不提供逐根 X 编辑 |
 | SV 与可接性 | 高 SV 是生成参数，不能消除格式、数值范围或玩家运动约束 |
 | 皮肤 | 保留 PNG 尺寸、透明度和密度规则；当前不完整复刻游戏动画 |

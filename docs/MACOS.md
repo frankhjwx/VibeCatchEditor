@@ -1,6 +1,6 @@
 # macOS 原生运行与 Windows 兼容性
 
-Mac 入口是独立的 `src/VibeCatchEditor.Mac` 项目，使用 Avalonia 11.3.7 的原生桌面窗口与自绘接口，音频输出为系统 AVAudioPlayer；无需 Windows、Wine 或浏览器。当前在 Apple Silicon / macOS 本机验证。Intel 构建路径已提供，但未在 Intel Mac 验证。
+Mac 入口是独立的 `src/FruitsAtelier.Mac` 项目，使用 Avalonia 11.3.7 的原生桌面窗口与自绘接口，音频输出为系统 AVAudioPlayer；无需 Windows、Wine 或浏览器。当前在 Apple Silicon / macOS 本机验证。Intel 构建路径已提供，但未在 Intel Mac 验证。
 
 ## 本机启动
 
@@ -11,10 +11,10 @@ Mac 入口是独立的 `src/VibeCatchEditor.Mac` 项目，使用 Avalonia 11.3.7
 `bash scripts/Publish-Mac.sh` 按当前机器架构生成自包含应用：
 
 ```text
-artifacts/macos/VibeCatchEditor.app
+artifacts/macos/FruitsAtelier.app
 ```
 
-该应用可双击启动，不需要单独安装 .NET。构建结果仅作本机签名，尚未进行 Developer ID 签名、公证或公开发行。应用包和运行产物不上传 GitHub。脱离仓库运行时，缓存和日志写入 `~/Library/Application Support/VibeCatchEditor`。
+该应用可双击启动，不需要单独安装 .NET。构建结果仅作本机签名，尚未进行 Developer ID 签名、公证或公开发行。应用包和运行产物不上传 GitHub。脱离仓库运行时，缓存和日志写入 `~/Library/Application Support/FruitsAtelier`。
 
 ## 复用与平台边界
 
