@@ -36,9 +36,8 @@ directly to generated objects. Internal fruit/tick alignment must remain within
 
 Tiny compensation uses the actual seeded offset and the path-progress time of
 each event, including legacy timing discrepancies. The desired pre-offset X is
-limited to 0..512. A usable compatibility result keeps that limitation internal;
-excess required velocity falls back to uncompensated real tiny droplets with an
-internal result flag. The result reports both whether compensation was applied
+limited to 0..512. FSliders that require compensation fail when the target is unreachable.
+Legacy compatibility settings can instead retain uncompensated positions. The result reports both whether compensation was applied
 and whether every tiny target met the internal tolerance.
 
 Each authoring track stores one traversal and an explicit span count. Individual
@@ -74,9 +73,6 @@ flag into JuiceStream, so Catch events still follow its independent TickDistance
 The file reader/writer performs v14 import/export separately. Native source
 paths, curve-generated double paths and file-quantised paths are distinct
 representations; round-trip validation must compare the post-encoding result.
-Mods and comparison with a running stable client remain outside this module's
-verification. Referenced algorithms and deterministic tests are not a claim of
-verified stable client equivalence.
 
 RNG input contains every represented fruit, FSlider, Legacy Slider and
 banana shower, ordered by source start time and retained source order. Each

@@ -22,10 +22,10 @@ Core 项目用 `Localization/*.json` 嵌入资源，运行时枚举这些资源�
 
 ## 校验与检查
 
-`Strings.Validate()` / `LocalizationCatalog.Validate()` 检查缺失或多余键、复合格式是否合法，以及各语言参数编号是否匹配。JSON 解析拒绝重复键和非字符串值。缺少翻译时回退英文；主表未知键显示 `[键名]`，便于发现遗漏，不能将回退当作完整翻译的验收依据。
+`Strings.Validate()` / `LocalizationCatalog.Validate()` 检查缺失或多余键、复合格式是否合法，以及各语言参数编号是否匹配。JSON 解析拒绝重复键和非字符串值。缺少翻译时回退英文；主表未知键显示 `[键名]`，便于发现遗漏。
 
 在项目根目录运行 `python src/FruitsAtelier.Core/Localization/audit.py`，检查语言表、直接引用的资源键及明显残留的 GUI 字面量。静态扫描不是 C# 语法解析器，仍需配合 .NET 测试和实际界面检查。
 
-维护后运行现有 Core 本地化测试和 App 界面测试，再实际切换语言检查菜单、属性、工具提示、错误、数字和窄窗口布局。确认切换不修改文档、dirty 状态或已有名称。测试入口为 `tests/FruitsAtelier.Core.Tests/LocalizationTests.cs`；本轮实际结果见[多选与本地化验收记录](MULTISELECT_LOCALIZATION_ACCEPTANCE.md)。
+维护后运行现有 Core 本地化测试和 App 界面测试，再实际切换语言检查菜单、属性、工具提示、错误、数字和窄窗口布局。确认切换不修改文档、dirty 状态或已有名称。测试入口为 `tests/FruitsAtelier.Core.Tests/LocalizationTests.cs`。
 
-系统异常、第三方库消息、操作系统原生界面以及语言资源自举失败的诊断不保证由应用完整翻译。应用可提供本地化的外层说明，同时保留必要的原始错误信息；不要通过递归调用尚未加载的语言表来翻译自举错误。
+系统和第三方异常保留原始信息，可加本地化的外层说明。语言资源自举错误使用独立消息，避免递归加载语言表。

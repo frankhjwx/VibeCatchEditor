@@ -84,7 +84,3 @@ Hyperdash 使用完整结果中的 Fruit / Droplet，跳过 TinyDroplet 和香�
 `.osu` 目前接受并输出 v14 / Mode=2，见[stable 文件规范](STABLE_FORMAT.md)。Legacy Slider 保留原始行；FSlider 按整数时间和路径坐标编码，保留 SpanCount，需要时插入继承 SV 并恢复。由 Legacy 转换的 FSlider 复用原类型/音效/sample 字段；行程次数改变时保留仍存在的边缘样本，新增边缘使用默认值并报告。无法与同时间对象兼容的 SV 冲突明确拒绝。输出回读比较完整对象序列、时间及 X；量化可能产生误差或序列变化。
 
 工程保存与 `.osu` 输出是独立操作，后者不能代替保存创作意图。视频和 storyboard 不加载，原始节文本保留不代表这些资源已打包。
-
-## 验证边界
-
-工程往返、控制点、多选、批量剪贴板及 `.osu` 输出回读的本轮结果见 [多选与本地化验收记录](MULTISELECT_LOCALIZATION_ACCEPTANCE.md)。自身确定性、内存误差满足容差或引用上游算法，均不能单独证明 stable 客户端等价；mods 和 stable 客户端对照仍未验证。

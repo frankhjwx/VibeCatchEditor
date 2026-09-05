@@ -11,7 +11,7 @@ The application uses the following NuGet packages, pinned by project files and `
 | NAudio.Vorbis | 1.5.0 | MIT |
 | NVorbis | 0.10.4 | MIT |
 
-Package metadata is available in the restored package `.nuspec` files under `artifacts/packages`. The application uses the installed .NET 8 runtime; it is not bundled in the build. Audio source references and limits are recorded in [Audio/REFERENCE.md](src/FruitsAtelier.App/Audio/REFERENCE.md); licence texts in `Audio/Licenses` are copied to builds.
+Package metadata is available in the restored package `.nuspec` files under `artifacts/packages`. Windows builds use the installed .NET 8 runtime; the self-contained macOS bundle includes it. Audio source references and limits are recorded in [Audio/REFERENCE.md](src/FruitsAtelier.App/Audio/REFERENCE.md); licence texts in `Audio/Licenses` are copied to builds.
 
 Source and notices: [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows), [Vortice.Mathematics](https://github.com/amerkoleci/Vortice.Mathematics), [SharpGenTools](https://github.com/SharpGenTools/SharpGenTools).
 
@@ -53,7 +53,7 @@ THE SOFTWARE.
 
 ## User-supplied skin assets
 
-No default skin artwork is distributed in this repository. `assets/skins/default.osk` is an optional, Git-ignored local archive; when present, it is copied to local build outputs. Local development uses the user-supplied `osu! Default Skin Template (20210821).osk`. Artwork rights remain with their respective owners. Permission to use an archive locally is not a grant to publicly redistribute the artwork; confirm the applicable resource licence before distributing a build containing it. Without a skin, the editor uses geometric fallback rendering. Importing an `.osk` never executes its contents.
+No default skin artwork is distributed in this repository. `assets/skins/default.osk` is an optional, Git-ignored local archive; when present, it is copied to local build outputs. Artwork rights remain with their respective owners. Permission to use an archive locally is not a grant to publicly redistribute the artwork; confirm the applicable resource licence before distributing a build containing it. Without a skin, the editor uses geometric fallback rendering. Importing an `.osk` never executes its contents.
 
 ## macOS host dependencies
 
