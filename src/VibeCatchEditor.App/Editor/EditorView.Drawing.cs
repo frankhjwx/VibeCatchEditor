@@ -559,7 +559,7 @@ public sealed partial class EditorView
         c.Circle(13, height - 14, 3, IsDirty ? Gold : Accent);
         string notice = conversion?.Diagnostics.FirstOrDefault() ?? StatusMessage;
         c.Text(notice, 25, height - 21, 11, conversion?.Diagnostics.Count > 0 ? Error : Muted, Math.Max(60, width - 292));
-        c.Text(L.Get("ui.renderStatus", pixelsPerMs / 0.09 * 100, L.Get(IsDirty ? "ui.unsaved" : Document.IsDemo ? "ui.demoData" : "ui.unchanged")), width - 247, height - 21, 11, IsDirty ? Gold : Muted, 237);
+        c.Text(L.Get(RendererStatusKey, pixelsPerMs / 0.09 * 100, L.Get(IsDirty ? "ui.unsaved" : Document.IsDemo ? "ui.demoData" : "ui.unchanged")), width - 247, height - 21, 11, IsDirty ? Gold : Muted, 237);
     }
 
     private void DrawMenu(ICanvas c)

@@ -54,3 +54,20 @@ THE SOFTWARE.
 ## User-supplied skin assets
 
 No default skin artwork is distributed in this repository. `assets/skins/default.osk` is an optional, Git-ignored local archive; when present, it is copied to local build outputs. Local development uses the user-supplied `osu! Default Skin Template (20210821).osk`. Artwork rights remain with their respective owners. Permission to use an archive locally is not a grant to publicly redistribute the artwork; confirm the applicable resource licence before distributing a build containing it. Without a skin, the editor uses geometric fallback rendering. Importing an `.osk` never executes its contents.
+
+## macOS host dependencies
+
+The separate `VibeCatchEditor.Mac` project uses Avalonia 11.3.7 (MIT;
+Copyright 2013–2025 The AvaloniaUI Project), MicroCom.Runtime 0.11.0 (MIT;
+Copyright 2021 Nikita Tsukanov), SkiaSharp 2.88.9 and HarfBuzzSharp 8.3.1.1.
+The complete dependency versions and integrity hashes are in its `packages.lock.json`.
+License texts and Skia/HarfBuzz third-party notices are in
+`src/VibeCatchEditor.Mac/Licenses` and are copied into the application bundle.
+Avalonia source version: `0834dbbbb9252406b08f2e74e8f328cc5ba502ee`.
+No Avalonia source files were copied into the editor.
+
+OGG decoding reuses NVorbis 0.10.4 under the existing license above.
+`Native/Audio.m` is project-owned glue to the system AVFoundation framework.
+The self-contained local bundle also includes Microsoft's .NET runtime and its
+bundled license and third-party notices. Local ad-hoc signing is not Developer ID
+signing or notarization.

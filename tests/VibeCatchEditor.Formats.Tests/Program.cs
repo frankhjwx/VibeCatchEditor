@@ -38,13 +38,17 @@ var tests = new (string Name, Action Run)[]
     ("Supplied real maps preserve original objects and timing on export", RealMaps),
     ("Real B/P/L and repeat sliders remain exportable after per-segment editing", RealEditableWrites)
 };
-int failed = 0;
+int failed = 0, skipped = 0;
 foreach (var (name, run) in tests)
 {
+    if (args.Contains("--skip-external-fixtures") && (run == (Action)RealMaps || run == (Action)RealEditableWrites))
+    {
+        skipped++; Console.WriteLine("SKIP " + name + " (external beatmap fixtures explicitly excluded)"); continue;
+    }
     try { run(); Console.WriteLine("PASS " + name); }
     catch (Exception error) { failed++; Console.WriteLine("FAIL " + name + ": " + error); }
 }
-Console.WriteLine($"{tests.Length - failed}/{tests.Length} format tests passed.");
+Console.WriteLine($"{tests.Length - failed - skipped}/{tests.Length - skipped} format tests passed; {skipped} external-fixture tests skipped.");
 return failed == 0 ? 0 : 1;
 
 static string Fixture() => """

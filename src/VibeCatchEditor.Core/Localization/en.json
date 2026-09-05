@@ -473,5 +473,14 @@
   "window.operationFailed": "The operation failed. Your editing data remains in memory.\n{0}\n\nSee artifacts/logs/editor.log for details.",
   "window.skinFailed": "Failed to load skin: {0}",
   "window.startFailed": "The editor could not start:\n{0}\n\nDetails: {1}",
-  "window.title": "VibeCatch Editor · {0}{1} · {2}"
+  "window.title": "VibeCatch Editor · {0}{1} · {2}",
+  "mac.save": "Save",
+  "mac.discard": "Discard",
+  "mac.cancel": "Cancel",
+  "mac.ok": "OK",
+  "mac.audioPlayFailed": "The audio device could not start playback.",
+  "mac.audioFormat": "Unsupported audio format.",
+  "mac.audioLimit": "Decoded audio exceeds the 512 MiB limit.",
+  "files.skin": "Open skin",
+  "mac.renderStatus": "macOS  ·  {0:0}%  ·  {1}"
 }

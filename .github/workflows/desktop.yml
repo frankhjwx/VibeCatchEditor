@@ -1,0 +1,36 @@
+name: Desktop regression
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: macOS
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.419
+      # Use the Mac SDK pin solely for CI; the existing Windows SDK pin and launcher stay unchanged.
+      - run: dotnet build ../VibeCatchEditor.sln -c Release -p:RestoreLockedMode=true
+      - name: Existing platform-independent and editor regression
+        run: |
+          foreach ($suite in @('Core', 'Gameplay', 'App', 'Skinning', 'SkinArchive')) {
+            dotnet run --no-build --project ../tests/VibeCatchEditor.$suite.Tests -c Release
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          dotnet run --no-build --project ../tests/VibeCatchEditor.Formats.Tests -c Release -- --skip-external-fixtures
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.419
+      - run: bash scripts/Test-Mac.sh --skip-device-tests
+      - run: bash scripts/Publish-Mac.sh

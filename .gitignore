@@ -19,3 +19,6 @@ __pycache__/
 
 # User-supplied artwork stays local
 /assets/skins/default.osk
+
+# Runtime-specific publish lock files are generated separately from development locks.
+**/packages.publish.lock.json
